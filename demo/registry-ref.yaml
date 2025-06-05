@@ -1,0 +1,155 @@
+---
+# 02-mongodb-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb
+spec:
+  ports:
+    - port: 27017 # Service port
+      targetPort: 27017 # Container port
+      protocol: TCP
+      name: mongo
+  selector:
+    app: mongodb # Selects pods with the label app: mongodb
+  type: ClusterIP # Only accessible within the cluster
+---
+# 06-registry-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: mcp-registry # Internal service name
+spec:
+  ports:
+    - port: 8080 # Service port
+      targetPort: 8080 # Container port
+      protocol: TCP
+      name: http
+  selector:
+    app: mcp-registry # Selects pods with the label app: mcp-registry
+  type: ClusterIP # Only accessible within the cluster initially
+---
+# 08-registry-route.yaml
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: mcp-registry-route # Name for your external route
+spec:
+  to:
+    kind: Service
+    name: mcp-registry # Target the internal 'mcp-registry' Service
+  port:
+    targetPort: http # Target the named port 'http' from the Service
+  tls:
+    termination: edge # Recommended for HTTPS traffic, OpenShift handles TLS termination
+    # insecureEdgeTerminationPolicy: Redirect # Optional: Redirect HTTP to HTTPS
+  wildcardPolicy: None
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: mcp-registry
+  name: mcp-registry
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: mcp-registry
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: mcp-registry
+    spec:
+      containers:
+      - env:
+        - name: MCP_REGISTRY_DATABASE_URL
+          value: mongodb://root:password@mongodb:27017
+        - name: MCP_REGISTRY_ENVIRONMENT
+          value: test
+        image: quay.io/dmartino/mcp-registry:amd64
+        imagePullPolicy: Always
+        name: mcp-registry
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 250m
+            memory: 256Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  generation: 1
+  labels:
+    app: mongodb
+  name: mongodb
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: mongodb
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: mongodb
+    spec:
+      containers:
+      - env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          value: root
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          value: password
+        image: mongo:4.4
+        imagePullPolicy: IfNotPresent
+        name: mongodb
+        ports:
+        - containerPort: 27017
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 250m
+            memory: 256Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /data/db
+          name: mongodb-data
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - emptyDir: {}
+        name: mongodb-data

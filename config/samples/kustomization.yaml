@@ -1,0 +1,9 @@
+## Append samples of your project ##
+resources:
+- mcp_v1_mcpcatalog.yaml
+- mcp_v1_mcpblueprint.yaml
+- mcp_v1_mcpserver.yaml
+# - deployments.yaml
+- mcp_v1_mcpregistry.yaml
+- mcp_v1_mcpserverdefinition.yaml
+# +kubebuilder:scaffold:manifestskustomizesamples

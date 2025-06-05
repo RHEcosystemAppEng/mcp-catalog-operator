@@ -1,0 +1,41 @@
+apiVersion: mcp.opendatahub.io/v1
+kind: McpServerDefinition
+metadata:
+  labels:
+    app.kubernetes.io/name: mcp-catalog-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: uns-mcp
+spec:
+  server_detail:
+    id: 8b01f838-0cb6-4c17-b381-108713321d6d
+    name: io.github.unstructured-io/uns-mcp
+    description: ""
+    repository:
+      url: https://github.com/Unstructured-IO/UNS-MCP
+      source: github
+      id: "947454003"
+    version_detail:
+      version: 0.0.1-seed
+      release_date: "2025-05-16T19:02:15Z"
+      is_latest: true
+    packages:
+      - registry_name: pypi
+        name: uns_mcp
+        version: 0.1.6
+        environment_variables: []
+        package_arguments:
+          - description: Directory to use
+            is_required: true
+            format: string
+            value: --directory ABSOLUTE/PATH/TO/YOUR-UNS-MCP-REPO/uns_mcp
+            default: --directory ABSOLUTE/PATH/TO/YOUR-UNS-MCP-REPO/uns_mcp
+            type: named
+            name: --directory ABSOLUTE/PATH/TO/YOUR-UNS-MCP-REPO/uns_mcp
+            value_hint: ABSOLUTE/PATH/TO/YOUR-UNS-MCP-REPO/uns_mcp
+          - description: Python script file
+            is_required: true
+            format: string
+            value: server.py
+            default: server.py
+            type: positional
+            value_hint: server.py

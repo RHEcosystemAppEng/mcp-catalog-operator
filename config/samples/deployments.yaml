@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dummy-deployment
+  labels:
+    app: dummy
+  ownerReferences:
+    - apiVersion: mcp.opendatahub.io
+      kind: McpServer
+      name: my-git-server
+      namespace: dmartino-demo
+      uid: 0096c794-78fb-4b25-b4b7-da9e3f31159c  
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dummy
+  template:
+    metadata:
+      labels:
+        app: dummy
+    spec:
+      containers:
+        - name: dummy-container
+          image: busybox:latest
+          command: ["sh", "-c", "sleep 3600"]

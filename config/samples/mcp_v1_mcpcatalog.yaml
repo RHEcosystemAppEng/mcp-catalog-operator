@@ -1,0 +1,10 @@
+apiVersion: mcp.opendatahub.io/v1
+kind: McpCatalog
+metadata:
+  labels:
+    app.kubernetes.io/name: mcp-catalog-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: red-hat-ecosystem-mcp-catalog
+spec:
+  description: Red Hat Ecosystem MCP Catalog
+  # TODO(user): Add fields here

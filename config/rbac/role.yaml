@@ -1,0 +1,44 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: manager-role
+rules:
+- apiGroups:
+  - mcp.opendatahub.io
+  resources:
+  - mcpblueprints
+  - mcpcatalogs
+  - mcpregistries
+  - mcpserverdefinitions
+  - mcpservers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - mcp.opendatahub.io
+  resources:
+  - mcpblueprints/finalizers
+  - mcpcatalogs/finalizers
+  - mcpregistries/finalizers
+  - mcpserverdefinitions/finalizers
+  - mcpservers/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - mcp.opendatahub.io
+  resources:
+  - mcpblueprints/status
+  - mcpcatalogs/status
+  - mcpregistries/status
+  - mcpserverdefinitions/status
+  - mcpservers/status
+  verbs:
+  - get
+  - patch
+  - update
