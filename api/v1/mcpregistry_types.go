@@ -26,7 +26,6 @@ import (
 type McpRegistrySpec struct {
 	Description string `json:"description,omitempty"`
 	Scope       string `json:"scope,omitempty"`
-	Source      string `json:"source"`
 }
 
 type McpRegistryStatus struct {

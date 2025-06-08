@@ -36,6 +36,7 @@ type McpServerConfig struct {
 
 	// `blueprint` mode
 	BlueprintRef *BlueprintRef `json:"blueprint-ref,omitempty"`
+	Command      string        `json:"command,omitempty"`
 	Args         []string      `json:"args,omitempty"`
 
 	// `container` mode

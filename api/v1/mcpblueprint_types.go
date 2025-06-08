@@ -29,9 +29,11 @@ type CatalogRef struct {
 }
 
 type McpBlueprintServerSpec struct {
-	Proxy *bool    `json:"proxy,omitempty"`
-	Image string   `json:"image"`
-	Args  []string `json:"args"`
+	Proxy   *bool    `json:"proxy,omitempty"`
+	Image   string   `json:"image"`
+	Command string   `json:"command"`
+	Args    []string `json:"args"`
+	EnvVars []string `json:"env-vars"`
 }
 
 // McpBlueprintSpec defines the desired state of McpBlueprint.

@@ -42,10 +42,6 @@ spec:
                 type: string
               scope:
                 type: string
-              source:
-                type: string
-            required:
-            - source
             type: object
           status:
             type: object

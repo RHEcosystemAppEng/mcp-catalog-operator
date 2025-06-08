@@ -19,6 +19,7 @@ package controller
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -60,6 +61,7 @@ func (r *McpServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	}
 
 	var serverImage *string = nil
+	var command string
 	args := mcpServer.Spec.McpServer.Args
 
 	registryRef := mcpServer.Spec.RegistryRef
@@ -106,6 +108,7 @@ func (r *McpServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		}
 
 		serverImage = &blueprint.Spec.McpServer.Image
+		command = blueprint.Spec.McpServer.Command
 		args = append(args, blueprint.Spec.McpServer.Args...)
 	}
 
@@ -136,24 +139,32 @@ func (r *McpServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			replicas = *mcpServer.Spec.Replicas
 		}
 
+		if mcpServer.Spec.McpServer.Proxy != nil && *mcpServer.Spec.McpServer.Proxy {
+			// TODO Have supergateway already in the base image
+			args = []string{"-y", "supergateway", "--stdio", fmt.Sprintf("%s %s", command, strings.Join(args, " "))}
+			command = "npx"
+		}
+
 		containers := []corev1.Container{
 			{
 				Name:    "mcp-server",
 				Image:   *serverImage,
 				Args:    args,
 				EnvFrom: mcpServer.Spec.EnvFrom,
+				Command: []string{command},
 			},
 		}
-		if mcpServer.Spec.McpServer.Proxy != nil && *mcpServer.Spec.McpServer.Proxy {
-			containers = append(containers, corev1.Container{
-				Name:  "mcp-proxy",
-				Image: "quay.io/dmartino/mcp-proxy:amd64",
-				Args:  []string{"--sse-port", "8000", "http://0.0.0.0:8080/sse"},
-				Ports: []corev1.ContainerPort{
-					{ContainerPort: 8000},
-				},
-			})
-		}
+		// if mcpServer.Spec.McpServer.Proxy != nil && *mcpServer.Spec.McpServer.Proxy {
+		// 	containers = append(containers, corev1.Container{
+		// 		Name:  "mcp-proxy",
+		// 		Image: "quay.io/dmartino/mcp-proxy:amd64",
+		// 		// Args:  []string{"--sse-port", "8000", "http://0.0.0.0:8080/sse"},
+		// 		Args: []string{"--sse-port", "8000"},
+		// 		Ports: []corev1.ContainerPort{
+		// 			{ContainerPort: 8000},
+		// 		},
+		// 	})
+		// }
 
 		deploy = appsv1.Deployment{
 			ObjectMeta: metav1.ObjectMeta{

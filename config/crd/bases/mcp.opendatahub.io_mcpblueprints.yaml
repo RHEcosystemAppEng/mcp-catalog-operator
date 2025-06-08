@@ -62,12 +62,20 @@ spec:
                     items:
                       type: string
                     type: array
+                  command:
+                    type: string
+                  env-vars:
+                    items:
+                      type: string
+                    type: array
                   image:
                     type: string
                   proxy:
                     type: boolean
                 required:
                 - args
+                - command
+                - env-vars
                 - image
                 type: object
               provider:

@@ -8,8 +8,6 @@ metadata:
 spec:
   description: "This is my namespaced MCP registry."
   scope: Namespaced
-  # source: http://mcp-registry:8080/v0
-  source: https://mcp-registry-route-llama-stack-eval.apps.ai-dev03.kni.syseng.devcluster.openshift.com/v0
 ---
 apiVersion: mcp.opendatahub.io/v1
 kind: McpRegistry
@@ -21,4 +19,3 @@ metadata:
 spec:
   description: "This is my cluster scoped MCP registry."
   scope: Cluster
-  source: http://mcp-registry:8080/v0

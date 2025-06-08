@@ -1,0 +1,18 @@
+apiVersion: mcp.opendatahub.io/v1
+kind: McpServer
+metadata:
+  name: tavily-server
+spec:
+  registry-ref:
+    name: mcp-demo-registry
+  replicas: 1
+  server-mode: blueprint
+  envFrom:
+    - secretRef:
+        name: mcp-tavily-secret
+  mcp-server:
+    guardian: false
+    proxy: true
+    blueprint-ref:
+      name: io-github-tavily-ai-tavily-mcp-vvnxg
+      namespace: mcp-catalog

@@ -98,6 +98,8 @@ spec:
                     required:
                     - name
                     type: object
+                  command:
+                    type: string
                   guardian:
                     type: boolean
                   proxy:
