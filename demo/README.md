@@ -30,20 +30,18 @@ POD_NAMESPACE=mcp-catalog go run cmd/main.go
 ```
 
 **TODO** Automate the following manual steps
+* Install RBAC resources (default):
+```
+oc apply -k config/rbac
+```
 * Install of build pipeline:
 ```
 oc apply -f demo/pipeline.yaml -n mcp-catalog
 ```
-* Binf `privileged` SCC to `pipeline` service account:
+* Bind `privileged` SCC to `pipeline` service account:
 ```
 oc adm policy add-scc-to-user privileged \
   -z pipeline -n mcp-catalog
-```
-* Start of catalog service:
-```bash
-oc project mcp-catalog
-cd ../mcp-catalog-apps/mcp-registry
-MCP_REGISTRY_NAME=foo MCP_CATALOG_NAME=red-hat-ecosystem-mcp-catalog uv run uvicorn mcp_registry.app:app --host 0.0.0.0 --port 8000
 ```
 
 ## [Admin] Create global Catalog
@@ -53,11 +51,11 @@ Install a sample catalog instance:
 oc apply -n mcp-catalog -f demo/catalog.yaml
 ```
 
-
 ## [Admin] Ingest server defs from reference MCP registry
 Run the import service from the catalog service:
 ```
-MCP_REGISTRY=$(oc get route mcp-registry-route -oyaml | yq '.status.ingress[0].host') \
+MCP_REGISTRY=$(oc get route -n mcp-registry-ref mcp-registry-route -oyaml | yq '.status.ingress[0].host') && \
+  echo "https://$MCP_REGISTRY/v0" && \
   curl -X POST "localhost:8000/import?mcp_registry_source=https://$MCP_REGISTRY/v0" | jq
 ```
 
@@ -100,10 +98,34 @@ Finally, create the `McpServer` instance:
 ```
 oc apply -n mcp-demo-registry -f demo/tavily-server.yaml
 ```
+**NOTE** Remember to update the blueprint ID!
+
+**TODO**:
+* Use `MCP Catalog` service to create the instance.
 
 ## [AI Engineer] Run MCP tools from Notebook
 Run [demo.ipynb](demo.ipynb) Notebook.
 
 ## [AI Engineer] Register server(s) to Llama Stack
+
+```
+ollama serve
+```
+
+```
+ollama run llama3.2:3b-instruct-fp16 --keepalive 240m
+```
+
+```
+# Enable ollama and MCP providers
+llama stack build
+```
+
+```
+export INFERENCE_MODEL=llama3.2:3b-instruct-fp16
+llama stack run /Users/dmartino/.llama/distributions/llamastack-mcp-demo-stack/llamastack-mcp-demo-stack-run.yaml
+```
+
 ## [AI Engineer] Run agentic workflow from customer Notebook
+Run [lls-mcp-demo.ipynb](./lls-mcp-demo.ipynb) Notebook.
 

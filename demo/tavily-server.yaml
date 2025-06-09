@@ -14,5 +14,5 @@ spec:
     guardian: false
     proxy: true
     blueprint-ref:
-      name: io-github-tavily-ai-tavily-mcp-vvnxg
+      name: io-github-tavily-ai-tavily-mcp-9wrt9
       namespace: mcp-catalog
