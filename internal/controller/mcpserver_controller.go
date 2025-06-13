@@ -69,6 +69,13 @@ func (r *McpServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		return ctrl.Result{}, fmt.Errorf("invalid registry-ref: name missing")
 	}
 
+	authConfig := mcpServer.Spec.McpServer.Auth
+	if authConfig == nil {
+		authConfig = &mcpv1.AuthConfig{Enabled: true}
+		mcpServer.Spec.McpServer.Auth = authConfig
+		fmt.Printf("Initialized auth to %v", authConfig)
+	}
+
 	var registry mcpv1.McpRegistry
 	registryNs := mcpServer.Namespace
 	if registryRef.Namespace != nil {
@@ -192,7 +199,11 @@ func (r *McpServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			return ctrl.Result{}, fmt.Errorf("failed to set owner reference on deployment: %w", err)
 		}
 		if err := r.Create(ctx, &deploy); err != nil {
-			return ctrl.Result{}, fmt.Errorf("failed to create deployment: %w", err)
+			if apierrors.IsAlreadyExists(err) {
+				fmt.Printf("deployment %q already exists\n", deployName)
+			} else {
+				return ctrl.Result{}, fmt.Errorf("failed to create deployment: %w", err)
+			}
 		}
 	}
 
@@ -225,7 +236,11 @@ func (r *McpServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		return ctrl.Result{}, fmt.Errorf("failed to set owner reference on service: %w", err)
 	}
 	if err := r.Create(ctx, &service); err != nil {
-		return ctrl.Result{}, fmt.Errorf("failed to create service: %w", err)
+		if apierrors.IsAlreadyExists(err) {
+			fmt.Printf("service %q already exists\n", serviceName)
+		} else {
+			return ctrl.Result{}, fmt.Errorf("failed to create service: %w", err)
+		}
 	}
 
 	// Continue with normal reconcile logic...

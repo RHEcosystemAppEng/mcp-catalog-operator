@@ -88,6 +88,13 @@ spec:
                     items:
                       type: string
                     type: array
+                  auth:
+                    properties:
+                      enabled:
+                        type: boolean
+                    required:
+                    - enabled
+                    type: object
                   blueprint-ref:
                     description: '`blueprint` mode'
                     properties:

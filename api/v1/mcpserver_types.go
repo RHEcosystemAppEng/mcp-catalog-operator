@@ -31,8 +31,13 @@ type BlueprintRef struct {
 	Namespace *string `json:"namespace,omitempty"`
 }
 
+type AuthConfig struct {
+	Enabled bool `json:"enabled"`
+}
+
 type McpServerConfig struct {
-	Guardian *bool `json:"guardian,omitempty"`
+	Auth     *AuthConfig `json:"auth,omitempty"`
+	Guardian *bool       `json:"guardian,omitempty"`
 
 	// `blueprint` mode
 	BlueprintRef *BlueprintRef `json:"blueprint-ref,omitempty"`

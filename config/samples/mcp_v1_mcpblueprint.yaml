@@ -40,6 +40,8 @@ spec:
   mcp-server:
     proxy: false
     image: quay.io/manusa/kubernetes_mcp_server:latest-linux-amd64
+    command: "kubernetes-mcp-server"
+    env-vars: []
     args:
       - "--sse-port"
       - "8000"
