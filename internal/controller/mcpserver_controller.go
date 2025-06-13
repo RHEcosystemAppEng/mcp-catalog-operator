@@ -60,10 +60,6 @@ func (r *McpServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	var serverImage *string = nil
-	var command string
-	args := mcpServer.Spec.McpServer.Args
-
 	registryRef := mcpServer.Spec.RegistryRef
 	if registryRef.Name == "" {
 		return ctrl.Result{}, fmt.Errorf("invalid registry-ref: name missing")
@@ -96,12 +92,30 @@ func (r *McpServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		return ctrl.Result{}, fmt.Errorf("failed to update McpServer with owner ref: %w", err)
 	}
 
+	err := r.createDeployment(ctx, mcpServer)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	err = r.createService(ctx, mcpServer)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	// Continue with normal reconcile logic...
+	return ctrl.Result{}, nil
+}
+
+func (r *McpServerReconciler) analyzeContainer(ctx context.Context, mcpServer mcpv1.McpServer) (string, string, []string, error) {
+	var serverImage string
+	var command string
+	args := mcpServer.Spec.McpServer.Args
+
 	// Get blueprint-ref from spec
 	if mcpServer.Spec.ServerMode == "blueprint" {
 		fmt.Printf("mcpServer.Spec is %+v\n", mcpServer.Spec)
 		ref := mcpServer.Spec.McpServer.BlueprintRef
 		if ref.Name == "" {
-			return ctrl.Result{}, fmt.Errorf("invalid blueprint-ref: name missing")
+			return "", "", []string{}, fmt.Errorf("invalid blueprint-ref: name missing")
 		}
 
 		var blueprint mcpv1.McpBlueprint
@@ -111,103 +125,113 @@ func (r *McpServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		}
 		fmt.Printf("Looking for McpBlueprint %s in %s", ref.Name, ns)
 		if err := r.Get(ctx, types.NamespacedName{Name: ref.Name, Namespace: ns}, &blueprint); err != nil {
-			return ctrl.Result{}, fmt.Errorf("failed to get referenced McpBlueprint: %w", err)
+			return "", "", []string{}, fmt.Errorf("failed to get referenced McpBlueprint: %w", err)
 		}
 
-		serverImage = &blueprint.Spec.McpServer.Image
+		serverImage = blueprint.Spec.McpServer.Image
 		command = blueprint.Spec.McpServer.Command
 		args = append(args, blueprint.Spec.McpServer.Args...)
 	}
 
 	if mcpServer.Spec.ServerMode == "container" {
-		serverImage = &mcpServer.Spec.McpServer.ServerImage
+		serverImage = mcpServer.Spec.McpServer.ServerImage
 	}
 
-	if serverImage != nil {
-		deployName := mcpServer.Name + "-deployment"
-		deployNamespace := mcpServer.Namespace
+	return serverImage, command, args, nil
+}
 
-		var deploy appsv1.Deployment
-		err := r.Get(ctx, types.NamespacedName{Name: deployName, Namespace: deployNamespace}, &deploy)
-		if err == nil {
-			return ctrl.Result{}, nil
-		}
-		if !apierrors.IsNotFound(err) {
-			return ctrl.Result{}, err
-		}
-
-		// 4. Create a new Deployment
-		labels := map[string]string{
-			"app": mcpServer.Name,
-		}
-
-		replicas := int32(1)
-		if mcpServer.Spec.Replicas != nil {
-			replicas = *mcpServer.Spec.Replicas
-		}
-
-		if mcpServer.Spec.McpServer.Proxy != nil && *mcpServer.Spec.McpServer.Proxy {
-			// TODO Have supergateway already in the base image
-			args = []string{"-y", "supergateway", "--stdio", fmt.Sprintf("%s %s", command, strings.Join(args, " "))}
-			command = "npx"
-		}
-
-		containers := []corev1.Container{
-			{
-				Name:    "mcp-server",
-				Image:   *serverImage,
-				Args:    args,
-				EnvFrom: mcpServer.Spec.EnvFrom,
-				Command: []string{command},
-			},
-		}
-		// if mcpServer.Spec.McpServer.Proxy != nil && *mcpServer.Spec.McpServer.Proxy {
-		// 	containers = append(containers, corev1.Container{
-		// 		Name:  "mcp-proxy",
-		// 		Image: "quay.io/dmartino/mcp-proxy:amd64",
-		// 		// Args:  []string{"--sse-port", "8000", "http://0.0.0.0:8080/sse"},
-		// 		Args: []string{"--sse-port", "8000"},
-		// 		Ports: []corev1.ContainerPort{
-		// 			{ContainerPort: 8000},
-		// 		},
-		// 	})
-		// }
-
-		deploy = appsv1.Deployment{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      deployName,
-				Namespace: deployNamespace,
-				Labels:    labels,
-			},
-			Spec: appsv1.DeploymentSpec{
-				Replicas: &replicas,
-				Selector: &metav1.LabelSelector{
-					MatchLabels: labels,
-				},
-				Template: corev1.PodTemplateSpec{
-					ObjectMeta: metav1.ObjectMeta{
-						Labels: labels,
-					},
-					Spec: corev1.PodSpec{
-						Containers: containers,
-					},
-				},
-			},
-		}
-
-		if err := controllerutil.SetControllerReference(&mcpServer, &deploy, r.Scheme); err != nil {
-			return ctrl.Result{}, fmt.Errorf("failed to set owner reference on deployment: %w", err)
-		}
-		if err := r.Create(ctx, &deploy); err != nil {
-			if apierrors.IsAlreadyExists(err) {
-				fmt.Printf("deployment %q already exists\n", deployName)
-			} else {
-				return ctrl.Result{}, fmt.Errorf("failed to create deployment: %w", err)
-			}
-		}
+func (r *McpServerReconciler) createDeployment(ctx context.Context, mcpServer mcpv1.McpServer) error {
+	serverImage, command, args, err := r.analyzeContainer(ctx, mcpServer)
+	if err != nil {
+		return err
 	}
 
-	serviceName := mcpServer.Name + "-svc"
+	deployName := mcpServer.Name + "-deployment"
+	deployNamespace := mcpServer.Namespace
+
+	var deploy appsv1.Deployment
+	err = r.Get(ctx, types.NamespacedName{Name: deployName, Namespace: deployNamespace}, &deploy)
+	if err == nil {
+		return nil
+	}
+	if !apierrors.IsNotFound(err) {
+		return err
+	}
+
+	// 4. Create a new Deployment
+	labels := map[string]string{
+		"app": mcpServer.Name,
+	}
+
+	replicas := int32(1)
+	if mcpServer.Spec.Replicas != nil {
+		replicas = *mcpServer.Spec.Replicas
+	}
+
+	if mcpServer.Spec.McpServer.Proxy != nil && *mcpServer.Spec.McpServer.Proxy {
+		// TODO Have supergateway already in the base image
+		args = []string{"-y", "supergateway", "--stdio", fmt.Sprintf("%s %s", command, strings.Join(args, " "))}
+		command = "npx"
+	}
+
+	containers := []corev1.Container{
+		{
+			Name:    "mcp-server",
+			Image:   serverImage,
+			Args:    args,
+			EnvFrom: mcpServer.Spec.EnvFrom,
+			Command: []string{command},
+		},
+	}
+	// if mcpServer.Spec.McpServer.Proxy != nil && *mcpServer.Spec.McpServer.Proxy {
+	// 	containers = append(containers, corev1.Container{
+	// 		Name:  "mcp-proxy",
+	// 		Image: "quay.io/dmartino/mcp-proxy:amd64",
+	// 		// Args:  []string{"--sse-port", "8000", "http://0.0.0.0:8080/sse"},
+	// 		Args: []string{"--sse-port", "8000"},
+	// 		Ports: []corev1.ContainerPort{
+	// 			{ContainerPort: 8000},
+	// 		},
+	// 	})
+	// }
+
+	deploy = appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      deployName,
+			Namespace: deployNamespace,
+			Labels:    labels,
+		},
+		Spec: appsv1.DeploymentSpec{
+			Replicas: &replicas,
+			Selector: &metav1.LabelSelector{
+				MatchLabels: labels,
+			},
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: labels,
+				},
+				Spec: corev1.PodSpec{
+					Containers: containers,
+				},
+			},
+		},
+	}
+
+	if err := controllerutil.SetControllerReference(&mcpServer, &deploy, r.Scheme); err != nil {
+		return fmt.Errorf("failed to set owner reference on deployment: %w", err)
+	}
+	if err := r.Create(ctx, &deploy); err != nil {
+		if apierrors.IsAlreadyExists(err) {
+			fmt.Printf("deployment %q already exists\n", deployName)
+		} else {
+			return fmt.Errorf("failed to create deployment: %w", err)
+		}
+	}
+	return nil
+}
+
+func (r *McpServerReconciler) createService(ctx context.Context, mcpServer mcpv1.McpServer) error {
+	serviceName := mcpServer.Name
 	serviceNamespace := mcpServer.Namespace
 	labels := map[string]string{
 		"app": mcpServer.Name,
@@ -233,18 +257,16 @@ func (r *McpServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	}
 
 	if err := controllerutil.SetControllerReference(&mcpServer, &service, r.Scheme); err != nil {
-		return ctrl.Result{}, fmt.Errorf("failed to set owner reference on service: %w", err)
+		return fmt.Errorf("failed to set owner reference on service: %w", err)
 	}
 	if err := r.Create(ctx, &service); err != nil {
 		if apierrors.IsAlreadyExists(err) {
 			fmt.Printf("service %q already exists\n", serviceName)
 		} else {
-			return ctrl.Result{}, fmt.Errorf("failed to create service: %w", err)
+			return fmt.Errorf("failed to create service: %w", err)
 		}
 	}
-
-	// Continue with normal reconcile logic...
-	return ctrl.Result{}, nil
+	return nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
