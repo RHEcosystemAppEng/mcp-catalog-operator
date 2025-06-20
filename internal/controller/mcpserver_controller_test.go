@@ -27,7 +27,7 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	mcpv1 "github.com/dmartinol/mcp-catalog-operator/api/v1"
+	mcpv1 "github.com/dmartinol/mcp-registry-operator/api/v1"
 )
 
 var _ = Describe("McpServer Controller", func() {
@@ -40,11 +40,11 @@ var _ = Describe("McpServer Controller", func() {
 			Name:      resourceName,
 			Namespace: "default", // TODO(user):Modify as needed
 		}
-		mcpserver := &mcpv1.McpServer{}
+		mcpServer := &mcpv1.McpServer{}
 
 		BeforeEach(func() {
 			By("creating the custom resource for the Kind McpServer")
-			err := k8sClient.Get(ctx, typeNamespacedName, mcpserver)
+			err := k8sClient.Get(ctx, typeNamespacedName, mcpServer)
 			if err != nil && errors.IsNotFound(err) {
 				resource := &mcpv1.McpServer{
 					ObjectMeta: metav1.ObjectMeta{
@@ -68,7 +68,7 @@ var _ = Describe("McpServer Controller", func() {
 		})
 		It("should successfully reconcile the resource", func() {
 			By("Reconciling the created resource")
-			controllerReconciler := &McpServerReconciler{
+			controllerReconciler := &McpServerRunReconciler{
 				Client: k8sClient,
 				Scheme: k8sClient.Scheme(),
 			}

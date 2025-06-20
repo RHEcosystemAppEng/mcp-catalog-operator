@@ -4,20 +4,20 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.17.2
-  name: mcpcatalogs.mcp.opendatahub.io
+  name: mcpserverpools.mcp.opendatahub.io
 spec:
   group: mcp.opendatahub.io
   names:
-    kind: McpCatalog
-    listKind: McpCatalogList
-    plural: mcpcatalogs
-    singular: mcpcatalog
+    kind: McpServerPool
+    listKind: McpServerPoolList
+    plural: mcpserverpools
+    singular: mcpserverpool
   scope: Namespaced
   versions:
   - name: v1
     schema:
       openAPIV3Schema:
-        description: McpCatalog is the Schema for the mcpcatalogs API.
+        description: McpServerPool is the Schema for the mcpregistries API.
         properties:
           apiVersion:
             description: |-
@@ -37,15 +37,13 @@ spec:
           metadata:
             type: object
           spec:
-            description: McpCatalogSpec defines the desired state of McpCatalog.
             properties:
               description:
                 type: string
-            required:
-            - description
+              scope:
+                type: string
             type: object
           status:
-            description: McpCatalogStatus defines the observed state of McpCatalog.
             type: object
         type: object
     served: true

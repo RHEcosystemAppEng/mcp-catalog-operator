@@ -27,7 +27,7 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	mcpv1 "github.com/dmartinol/mcp-catalog-operator/api/v1"
+	mcpv1 "github.com/dmartinol/mcp-registry-operator/api/v1"
 )
 
 var _ = Describe("McpRegistry Controller", func() {
@@ -40,11 +40,11 @@ var _ = Describe("McpRegistry Controller", func() {
 			Name:      resourceName,
 			Namespace: "default", // TODO(user):Modify as needed
 		}
-		mcpregistry := &mcpv1.McpRegistry{}
+		mcpRegistry := &mcpv1.McpRegistry{}
 
 		BeforeEach(func() {
 			By("creating the custom resource for the Kind McpRegistry")
-			err := k8sClient.Get(ctx, typeNamespacedName, mcpregistry)
+			err := k8sClient.Get(ctx, typeNamespacedName, mcpRegistry)
 			if err != nil && errors.IsNotFound(err) {
 				resource := &mcpv1.McpRegistry{
 					ObjectMeta: metav1.ObjectMeta{

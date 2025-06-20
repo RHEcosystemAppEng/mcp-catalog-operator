@@ -2,7 +2,7 @@ apiVersion: mcp.opendatahub.io/v1
 kind: McpServerDefinition
 metadata:
   labels:
-    app.kubernetes.io/name: mcp-catalog-operator
+    app.kubernetes.io/name: mcp-registry-operator
     app.kubernetes.io/managed-by: kustomize
   name: uns-mcp
 spec:

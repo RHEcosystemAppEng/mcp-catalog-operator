@@ -23,13 +23,12 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// McpCatalogSpec defines the desired state of McpCatalog.
-type McpCatalogSpec struct {
-	Description string `json:"description"`
+type McpServerPoolSpec struct {
+	Description string `json:"description,omitempty"`
+	Scope       string `json:"scope,omitempty"`
 }
 
-// McpCatalogStatus defines the observed state of McpCatalog.
-type McpCatalogStatus struct {
+type McpServerPoolStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 }
@@ -37,24 +36,24 @@ type McpCatalogStatus struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 
-// McpCatalog is the Schema for the mcpcatalogs API.
-type McpCatalog struct {
+// McpServerPool is the Schema for the mcpregistries API.
+type McpServerPool struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   McpCatalogSpec   `json:"spec,omitempty"`
-	Status McpCatalogStatus `json:"status,omitempty"`
+	Spec   McpServerPoolSpec   `json:"spec,omitempty"`
+	Status McpServerPoolStatus `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-// McpCatalogList contains a list of McpCatalog.
-type McpCatalogList struct {
+// McpServerPoolList contains a list of McpServerPool.
+type McpServerPoolList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []McpCatalog `json:"items"`
+	Items           []McpServerPool `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&McpCatalog{}, &McpCatalogList{})
+	SchemeBuilder.Register(&McpServerPool{}, &McpServerPoolList{})
 }

@@ -27,7 +27,7 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	mcpv1 "github.com/dmartinol/mcp-catalog-operator/api/v1"
+	mcpv1 "github.com/dmartinol/mcp-registry-operator/api/v1"
 )
 
 var _ = Describe("McpServerDefinition Controller", func() {
