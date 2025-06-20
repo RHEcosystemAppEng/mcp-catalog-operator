@@ -2,51 +2,46 @@ apiVersion: mcp.opendatahub.io/v1
 kind: McpServer
 metadata:
   labels:
-    app.kubernetes.io/name: mcp-catalog-operator
+    app.kubernetes.io/name: mcp-registry-operator
     app.kubernetes.io/managed-by: kustomize
-  name: local-kubernetes-mcp-server
+  name: kubernetes-mcpserver
 spec:
-  registry-ref:
-    name: my-ns-registry
-  replicas: 1
-  server-mode: blueprint
-  mcp-server:
-    guardian: false
-    blueprint-ref:
-      name: kubernetes-mcp-server
----
-apiVersion: mcp.opendatahub.io/v1
-kind: McpServer
-metadata:
-  labels:
-    app.kubernetes.io/name: mcp-catalog-operator
-    app.kubernetes.io/managed-by: kustomize
-  name: ext-git-server
-spec:
-  registry-ref:
-    name: my-cluster-registry
-  replicas: 1
-  server-mode: remote
-  mcp-server:
-    guardian: true
-    server-uri: https://my-git-server:8000/sse
----
-apiVersion: mcp.opendatahub.io/v1
-kind: McpServer
-metadata:
-  labels:
-    app.kubernetes.io/name: mcp-catalog-operator
-    app.kubernetes.io/managed-by: kustomize
-  name: ext-mcp-server
-spec:
-  registry-ref:
-    name: my-cluster-registry
-  replicas: 1
-  envFrom:
-    - secretRef:
-        name: mcp-slack-secret
-  server-mode: container
-  mcp-server:
-    guardian: false
+  registryRef:
+    name: red-hat-ecosystem-mcp-catalog
+  description: >
+    # Kubernetes MCP Server
+
+    * [GitHub](https://github.com/manusa/kubernetes-mcp-server)
+    
+    * [Container image](quay.io/manusa/kubernetes_mcp_server:latest-linux-amd64)
+
+    ## ✨ Features <a id="features"></a>
+
+    A powerful and flexible Kubernetes [Model Context Protocol (MCP)](https://blog.marcnuri.com/model-context-protocol-mcp-introduction) server implementation with support for **Kubernetes** and **OpenShift**.
+
+    - **✅ Configuration**:
+      - Automatically detect changes in the Kubernetes configuration and update the MCP server.
+      - **View** and manage the current [Kubernetes `.kube/config`](https://blog.marcnuri.com/where-is-my-default-kubeconfig-file) or in-cluster configuration.
+    - **✅ Generic Kubernetes Resources**: Perform operations on **any** Kubernetes or OpenShift resource.
+      - Any CRUD operation (Create or Update, Get, List, Delete).
+    - **✅ Pods**: Perform Pod-specific operations.
+      - **List** pods in all namespaces or in a specific namespace.
+      - **Get** a pod by name from the specified namespace.
+      - **Delete** a pod by name from the specified namespace.
+      - **Show logs** for a pod by name from the specified namespace.
+      - **Exec** into a pod and run a command.
+      - **Run** a container image in a pod and optionally expose it.
+    - **✅ Namespaces**: List Kubernetes Namespaces.
+    - **✅ Events**: View Kubernetes events in all namespaces or in a specific namespace.
+    - **✅ Projects**: List OpenShift Projects.
+  provider: RedHat
+  license: Apache 2.0
+  competencies: ['kubernetes', 'openshift']
+  mcpServer:
     proxy: false
-    server-image: mcp/slack
+    image: quay.io/manusa/kubernetes_mcp_server:latest-linux-amd64
+    command: "kubernetes-mcp-server"
+    envVars: []
+    args:
+      - "--sse-port"
+      - "8000"

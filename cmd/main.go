@@ -37,8 +37,8 @@ import (
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
-	mcpv1 "github.com/dmartinol/mcp-catalog-operator/api/v1"
-	"github.com/dmartinol/mcp-catalog-operator/internal/controller"
+	mcpv1 "github.com/dmartinol/mcp-registry-operator/api/v1"
+	"github.com/dmartinol/mcp-registry-operator/internal/controller"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -202,18 +202,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controller.McpCatalogReconciler{
+	if err = (&controller.McpRegistryReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "McpCatalog")
-		os.Exit(1)
-	}
-	if err = (&controller.McpBlueprintReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "McpBlueprint")
+		setupLog.Error(err, "unable to create controller", "controller", "McpRegistry")
 		os.Exit(1)
 	}
 	if err = (&controller.McpServerReconciler{
@@ -223,20 +216,27 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "McpServer")
 		os.Exit(1)
 	}
-	if err = (&controller.McpRegistryReconciler{
+	if err = (&controller.McpServerRunReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "McpRegistry")
+		setupLog.Error(err, "unable to create controller", "controller", "McpServerRun")
 		os.Exit(1)
 	}
-	if err = (&controller.McpServerDefinitionReconciler{
+	if err = (&controller.McpServerPoolReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "McpServerDefinition")
+		setupLog.Error(err, "unable to create controller", "controller", "McpServerPool")
 		os.Exit(1)
 	}
+	// if err = (&controller.McpServerDefinitionReconciler{
+	// 	Client: mgr.GetClient(),
+	// 	Scheme: mgr.GetScheme(),
+	// }).SetupWithManager(mgr); err != nil {
+	// 	setupLog.Error(err, "unable to create controller", "controller", "McpServerDefinition")
+	// 	os.Exit(1)
+	// }
 	// +kubebuilder:scaffold:builder
 
 	if metricsCertWatcher != nil {

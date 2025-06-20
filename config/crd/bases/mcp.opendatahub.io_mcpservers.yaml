@@ -37,88 +37,41 @@ spec:
           metadata:
             type: object
           spec:
+            description: McpServerSpec defines the desired state of McpServer.
             properties:
-              envFrom:
+              competencies:
                 items:
-                  description: EnvFromSource represents the source of a set of ConfigMaps
-                  properties:
-                    configMapRef:
-                      description: The ConfigMap to select from
-                      properties:
-                        name:
-                          default: ""
-                          description: |-
-                            Name of the referent.
-                            This field is effectively required, but due to backwards compatibility is
-                            allowed to be empty. Instances of this type with an empty value here are
-                            almost certainly wrong.
-                            More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                          type: string
-                        optional:
-                          description: Specify whether the ConfigMap must be defined
-                          type: boolean
-                      type: object
-                      x-kubernetes-map-type: atomic
-                    prefix:
-                      description: An optional identifier to prepend to each key in
-                        the ConfigMap. Must be a C_IDENTIFIER.
-                      type: string
-                    secretRef:
-                      description: The Secret to select from
-                      properties:
-                        name:
-                          default: ""
-                          description: |-
-                            Name of the referent.
-                            This field is effectively required, but due to backwards compatibility is
-                            allowed to be empty. Instances of this type with an empty value here are
-                            almost certainly wrong.
-                            More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                          type: string
-                        optional:
-                          description: Specify whether the Secret must be defined
-                          type: boolean
-                      type: object
-                      x-kubernetes-map-type: atomic
-                  type: object
+                  type: string
                 type: array
-              mcp-server:
+              description:
+                type: string
+              license:
+                type: string
+              mcpServer:
                 properties:
                   args:
                     items:
                       type: string
                     type: array
-                  auth:
-                    properties:
-                      enabled:
-                        type: boolean
-                    required:
-                    - enabled
-                    type: object
-                  blueprint-ref:
-                    description: '`blueprint` mode'
-                    properties:
-                      name:
-                        type: string
-                      namespace:
-                        type: string
-                    required:
-                    - name
-                    type: object
                   command:
                     type: string
-                  guardian:
-                    type: boolean
+                  envVars:
+                    items:
+                      type: string
+                    type: array
+                  image:
+                    type: string
                   proxy:
-                    description: '`container` mode'
                     type: boolean
-                  server-image:
-                    type: string
-                  server-uri:
-                    description: '`remote` mode'
-                    type: string
+                required:
+                - args
+                - command
+                - envVars
+                - image
                 type: object
-              registry-ref:
+              provider:
+                type: string
+              registryRef:
                 properties:
                   name:
                     type: string
@@ -127,14 +80,12 @@ spec:
                 required:
                 - name
                 type: object
-              replicas:
-                format: int32
-                type: integer
-              server-mode:
-                type: string
             required:
-            - mcp-server
-            - server-mode
+            - competencies
+            - description
+            - license
+            - mcpServer
+            - provider
             type: object
           status:
             description: McpServerStatus defines the observed state of McpServer.

@@ -32,7 +32,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	mcpv1 "github.com/dmartinol/mcp-catalog-operator/api/v1"
+	mcpv1 "github.com/dmartinol/mcp-registry-operator/api/v1"
 	// +kubebuilder:scaffold:imports
 )
 

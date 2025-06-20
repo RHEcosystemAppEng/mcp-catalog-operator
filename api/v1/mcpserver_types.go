@@ -17,47 +17,33 @@ limitations under the License.
 package v1
 
 import (
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
+// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
 type RegistryRef struct {
 	Name      string  `json:"name"`
 	Namespace *string `json:"namespace,omitempty"`
 }
 
-type BlueprintRef struct {
-	Name      string  `json:"name"`
-	Namespace *string `json:"namespace,omitempty"`
+type McpServerServerSpec struct {
+	Proxy   *bool    `json:"proxy,omitempty"`
+	Image   string   `json:"image"`
+	Command string   `json:"command"`
+	Args    []string `json:"args"`
+	EnvVars []string `json:"envVars"`
 }
 
-type AuthConfig struct {
-	Enabled bool `json:"enabled"`
-}
-
-type McpServerConfig struct {
-	Auth     *AuthConfig `json:"auth,omitempty"`
-	Guardian *bool       `json:"guardian,omitempty"`
-
-	// `blueprint` mode
-	BlueprintRef *BlueprintRef `json:"blueprint-ref,omitempty"`
-	Command      string        `json:"command,omitempty"`
-	Args         []string      `json:"args,omitempty"`
-
-	// `container` mode
-	Proxy       *bool  `json:"proxy,omitempty"`
-	ServerImage string `json:"server-image,omitempty"`
-
-	// `remote` mode
-	ServerURI string `json:"server-uri,omitempty"`
-}
-
+// McpServerSpec defines the desired state of McpServer.
 type McpServerSpec struct {
-	Replicas    *int32                 `json:"replicas,omitempty"`
-	EnvFrom     []corev1.EnvFromSource `json:"envFrom,omitempty"`
-	RegistryRef RegistryRef            `json:"registry-ref,omitempty"`
-	ServerMode  string                 `json:"server-mode"` // must be "blueprint", "container" or "remote"
-	McpServer   McpServerConfig        `json:"mcp-server"`
+	RegistryRef  RegistryRef         `json:"registryRef,omitempty"`
+	Description  string              `json:"description"`
+	Provider     string              `json:"provider"`
+	License      string              `json:"license"`
+	Competencies []string            `json:"competencies"`
+	McpServer    McpServerServerSpec `json:"mcpServer"`
 }
 
 // McpServerStatus defines the observed state of McpServer.

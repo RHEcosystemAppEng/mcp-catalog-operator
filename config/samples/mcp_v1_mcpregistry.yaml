@@ -2,20 +2,9 @@ apiVersion: mcp.opendatahub.io/v1
 kind: McpRegistry
 metadata:
   labels:
-    app.kubernetes.io/name: mcp-catalog-operator
+    app.kubernetes.io/name: mcp-registry-operator
     app.kubernetes.io/managed-by: kustomize
-  name: my-ns-registry
+  name: red-hat-ecosystem-mcp-catalog
 spec:
-  description: "This is my namespaced MCP registry."
-  scope: Namespaced
----
-apiVersion: mcp.opendatahub.io/v1
-kind: McpRegistry
-metadata:
-  labels:
-    app.kubernetes.io/name: mcp-catalog-operator
-    app.kubernetes.io/managed-by: kustomize
-  name: my-cluster-registry
-spec:
-  description: "This is my cluster scoped MCP registry."
-  scope: Cluster
+  description: Red Hat Ecosystem MCP Catalog
+  # TODO(user): Add fields here

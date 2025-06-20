@@ -27,10 +27,10 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	mcpv1 "github.com/dmartinol/mcp-catalog-operator/api/v1"
+	mcpv1 "github.com/dmartinol/mcp-registry-operator/api/v1"
 )
 
-var _ = Describe("McpCatalog Controller", func() {
+var _ = Describe("McpRegistry Controller", func() {
 	Context("When reconciling a resource", func() {
 		const resourceName = "test-resource"
 
@@ -40,13 +40,13 @@ var _ = Describe("McpCatalog Controller", func() {
 			Name:      resourceName,
 			Namespace: "default", // TODO(user):Modify as needed
 		}
-		mcpcatalog := &mcpv1.McpCatalog{}
+		mcpregistry := &mcpv1.McpServerPool{}
 
 		BeforeEach(func() {
-			By("creating the custom resource for the Kind McpCatalog")
-			err := k8sClient.Get(ctx, typeNamespacedName, mcpcatalog)
+			By("creating the custom resource for the Kind McpRegistry")
+			err := k8sClient.Get(ctx, typeNamespacedName, mcpregistry)
 			if err != nil && errors.IsNotFound(err) {
-				resource := &mcpv1.McpCatalog{
+				resource := &mcpv1.McpServerPool{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      resourceName,
 						Namespace: "default",
@@ -59,16 +59,16 @@ var _ = Describe("McpCatalog Controller", func() {
 
 		AfterEach(func() {
 			// TODO(user): Cleanup logic after each test, like removing the resource instance.
-			resource := &mcpv1.McpCatalog{}
+			resource := &mcpv1.McpServerPool{}
 			err := k8sClient.Get(ctx, typeNamespacedName, resource)
 			Expect(err).NotTo(HaveOccurred())
 
-			By("Cleanup the specific resource instance McpCatalog")
+			By("Cleanup the specific resource instance McpRegistry")
 			Expect(k8sClient.Delete(ctx, resource)).To(Succeed())
 		})
 		It("should successfully reconcile the resource", func() {
 			By("Reconciling the created resource")
-			controllerReconciler := &McpCatalogReconciler{
+			controllerReconciler := &McpServerPoolReconciler{
 				Client: k8sClient,
 				Scheme: k8sClient.Scheme(),
 			}

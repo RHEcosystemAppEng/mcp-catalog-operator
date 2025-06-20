@@ -1,0 +1,21 @@
+apiVersion: mcp.opendatahub.io/v1
+kind: McpServerPool
+metadata:
+  labels:
+    app.kubernetes.io/name: mcp-registry-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: my-ns-registry
+spec:
+  description: "This is my namespaced MCP registry."
+  scope: Namespaced
+---
+apiVersion: mcp.opendatahub.io/v1
+kind: McpServerPool
+metadata:
+  labels:
+    app.kubernetes.io/name: mcp-registry-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: my-cluster-registry
+spec:
+  description: "This is my cluster scoped MCP registry."
+  scope: Cluster

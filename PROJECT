@@ -5,8 +5,8 @@
 domain: opendatahub.io
 layout:
 - go.kubebuilder.io/v4
-projectName: mcp-catalog-operator
-repo: github.com/dmartinol/mcp-catalog-operator
+projectName: mcp-registry-operator
+repo: github.com/dmartinol/mcp-registry-operator
 resources:
 - api:
     crdVersion: v1
@@ -14,17 +14,8 @@ resources:
   controller: true
   domain: opendatahub.io
   group: mcp
-  kind: McpCatalog
-  path: github.com/dmartinol/mcp-catalog-operator/api/v1
-  version: v1
-- api:
-    crdVersion: v1
-    namespaced: true
-  controller: true
-  domain: opendatahub.io
-  group: mcp
-  kind: McpBlueprint
-  path: github.com/dmartinol/mcp-catalog-operator/api/v1
+  kind: McpRegistry
+  path: github.com/dmartinol/mcp-registry-operator/api/v1
   version: v1
 - api:
     crdVersion: v1
@@ -33,7 +24,7 @@ resources:
   domain: opendatahub.io
   group: mcp
   kind: McpServer
-  path: github.com/dmartinol/mcp-catalog-operator/api/v1
+  path: github.com/dmartinol/mcp-registry-operator/api/v1
   version: v1
 - api:
     crdVersion: v1
@@ -41,8 +32,8 @@ resources:
   controller: true
   domain: opendatahub.io
   group: mcp
-  kind: McpRegistry
-  path: github.com/dmartinol/mcp-catalog-operator/api/v1
+  kind: McpServerRun
+  path: github.com/dmartinol/mcp-registry-operator/api/v1
   version: v1
 - api:
     crdVersion: v1
@@ -50,7 +41,16 @@ resources:
   controller: true
   domain: opendatahub.io
   group: mcp
-  kind: McpServerDefinition
-  path: github.com/dmartinol/mcp-catalog-operator/api/v1
+  kind: McpServerPool
+  path: github.com/dmartinol/mcp-registry-operator/api/v1
   version: v1
+# - api:
+#     crdVersion: v1
+#     namespaced: true
+#   controller: true
+#   domain: opendatahub.io
+#   group: mcp
+#   kind: McpServerDefinition
+#   path: github.com/dmartinol/mcp-registry-operator/api/v1
+#   version: v1
 version: "3"
