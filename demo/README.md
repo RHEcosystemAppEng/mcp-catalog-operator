@@ -86,7 +86,7 @@ oc apply -n mcp-demo-registry -f demo/registry.yaml
 **TODO**:Automate manual steps
 * Grant permission to pull images from `mcp-catalog` registry
 ```
-oc policy add-role-to-user system:image-puller system:serviceaccount:mcp-demo-registry:default -n mcp-catalog
+oc adm policy add-role-to-user system:image-puller system:serviceaccount:mcp-demo-registry:default -n mcp-catalog
 ```
 
 ## [AI Admin] Activate server for blueprint(s)
@@ -128,4 +128,5 @@ llama stack run /Users/dmartino/.llama/distributions/llamastack-mcp-demo-stack/l
 
 ## [AI Engineer] Run agentic workflow from customer Notebook
 Run [lls-mcp-demo.ipynb](./lls-mcp-demo.ipynb) Notebook.
+
 
