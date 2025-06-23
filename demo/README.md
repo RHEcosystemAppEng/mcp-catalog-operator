@@ -65,6 +65,11 @@ oc get mcpserverdefinitions -n mcp-catalog | wc -l
 ```
 
 ## [Admin] Promote selected instance(s) to blueprint
+Expose the registry service port:
+```
+oc port-forward svc/red-hat-ecosystem-mcp-catalog-svc 8000:8000
+```
+
 Select one server definition and promote it:
 ```
 SERVER_NAME="$(oc get mcpserverdefinitions -n mcp-catalog | grep tavily-mcp | head -1 | cut -d ' ' -f 1)" \

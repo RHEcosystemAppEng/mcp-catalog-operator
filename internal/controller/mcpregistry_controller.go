@@ -151,8 +151,9 @@ func (r *McpRegistryReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 					ServiceAccountName: saName,
 					Containers: []corev1.Container{
 						{
-							Name:  "mcp-registry",
-							Image: "quay.io/ecosystem-appeng/mcp-registry:amd64-0.1",
+							Name:            "mcp-registry",
+							Image:           "quay.io/ecosystem-appeng/mcp-registry:amd64-0.1",
+							ImagePullPolicy: corev1.PullAlways,
 							Ports: []corev1.ContainerPort{
 								{
 									Name:          "http",
