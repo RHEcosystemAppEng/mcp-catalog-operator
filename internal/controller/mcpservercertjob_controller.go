@@ -24,7 +24,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
-	mcpv1 "github.com/dmartinol/mcp-registry-operator/api/v1"
+	mcpv1alpha1 "github.com/dmartinol/mcp-registry-operator/api/v1alpha1"
 )
 
 // McpServerCertJobReconciler reconciles a McpServerCertJob object
@@ -57,7 +57,7 @@ func (r *McpServerCertJobReconciler) Reconcile(ctx context.Context, req ctrl.Req
 // SetupWithManager sets up the controller with the Manager.
 func (r *McpServerCertJobReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&mcpv1.McpServerCertJob{}).
+		For(&mcpv1alpha1.McpServerCertJob{}).
 		Named("mcpservercertjob").
 		Complete(r)
 }

@@ -27,7 +27,7 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	mcpv1 "github.com/dmartinol/mcp-registry-operator/api/v1"
+	mcpv1alpha1 "github.com/dmartinol/mcp-registry-operator/api/v1alpha1"
 )
 
 var _ = Describe("McpServerImportJob Controller", func() {
@@ -40,13 +40,13 @@ var _ = Describe("McpServerImportJob Controller", func() {
 			Name:      resourceName,
 			Namespace: "default", // TODO(user):Modify as needed
 		}
-		mcpserverimportjob := &mcpv1.McpServerImportJob{}
+		mcpserverimportjob := &mcpv1alpha1.McpServerImportJob{}
 
 		BeforeEach(func() {
 			By("creating the custom resource for the Kind McpServerImportJob")
 			err := k8sClient.Get(ctx, typeNamespacedName, mcpserverimportjob)
 			if err != nil && errors.IsNotFound(err) {
-				resource := &mcpv1.McpServerImportJob{
+				resource := &mcpv1alpha1.McpServerImportJob{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      resourceName,
 						Namespace: "default",
@@ -59,7 +59,7 @@ var _ = Describe("McpServerImportJob Controller", func() {
 
 		AfterEach(func() {
 			// TODO(user): Cleanup logic after each test, like removing the resource instance.
-			resource := &mcpv1.McpServerImportJob{}
+			resource := &mcpv1alpha1.McpServerImportJob{}
 			err := k8sClient.Get(ctx, typeNamespacedName, resource)
 			Expect(err).NotTo(HaveOccurred())
 

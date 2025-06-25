@@ -27,7 +27,7 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	mcpv1 "github.com/dmartinol/mcp-registry-operator/api/v1"
+	mcpv1alpha1 "github.com/dmartinol/mcp-registry-operator/api/v1alpha1"
 )
 
 var _ = Describe("McpRegistry Controller", func() {
@@ -40,19 +40,19 @@ var _ = Describe("McpRegistry Controller", func() {
 			Name:      resourceName,
 			Namespace: "default", // TODO(user):Modify as needed
 		}
-		mcpRegistry := &mcpv1.McpRegistry{}
+		mcpRegistry := &mcpv1alpha1.McpRegistry{}
 
 		BeforeEach(func() {
 			By("creating the custom resource for the Kind McpRegistry")
 			err := k8sClient.Get(ctx, typeNamespacedName, mcpRegistry)
 			if err != nil && errors.IsNotFound(err) {
-				resource := &mcpv1.McpRegistry{
+				resource := &mcpv1alpha1.McpRegistry{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      resourceName,
 						Namespace: "default",
 					},
-					Spec: mcpv1.McpRegistrySpec{
-						Catalogs: []mcpv1.CatalogRef{},
+					Spec: mcpv1alpha1.McpRegistrySpec{
+						Catalogs: []mcpv1alpha1.CatalogRef{},
 					},
 				}
 				Expect(k8sClient.Create(ctx, resource)).To(Succeed())
@@ -61,7 +61,7 @@ var _ = Describe("McpRegistry Controller", func() {
 
 		AfterEach(func() {
 			// TODO(user): Cleanup logic after each test, like removing the resource instance.
-			resource := &mcpv1.McpRegistry{}
+			resource := &mcpv1alpha1.McpRegistry{}
 			err := k8sClient.Get(ctx, typeNamespacedName, resource)
 			Expect(err).NotTo(HaveOccurred())
 

@@ -1,4 +1,4 @@
-apiVersion: mcp.opendatahub.io/v1
+apiVersion: mcp.opendatahub.io/v1alpha1
 kind: McpRegistry
 metadata:
   labels:

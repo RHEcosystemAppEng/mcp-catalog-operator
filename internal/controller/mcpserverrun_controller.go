@@ -32,7 +32,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
-	mcpv1 "github.com/dmartinol/mcp-registry-operator/api/v1"
+	mcpv1alpha1 "github.com/dmartinol/mcp-registry-operator/api/v1alpha1"
 )
 
 // McpServerRunReconciler reconciles a McpServerRun object
@@ -55,7 +55,7 @@ type McpServerRunReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.20.4/pkg/reconcile
 func (r *McpServerRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	var mcpServerRun mcpv1.McpServerRun
+	var mcpServerRun mcpv1alpha1.McpServerRun
 	if err := r.Get(ctx, req.NamespacedName, &mcpServerRun); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
@@ -71,12 +71,12 @@ func (r *McpServerRunReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 	authConfig := mcpServerRun.Spec.McpServer.Auth
 	if authConfig == nil {
-		authConfig = &mcpv1.AuthConfig{Enabled: true}
+		authConfig = &mcpv1alpha1.AuthConfig{Enabled: true}
 		mcpServerRun.Spec.McpServer.Auth = authConfig
 		fmt.Printf("Initialized auth to %v", authConfig)
 	}
 
-	var registry mcpv1.McpRegistry
+	var registry mcpv1alpha1.McpRegistry
 	registryNs := mcpServerRun.Namespace
 	if registryRef.Namespace != nil {
 		registryNs = *registryRef.Namespace
@@ -104,7 +104,7 @@ func (r *McpServerRunReconciler) Reconcile(ctx context.Context, req ctrl.Request
 			return ctrl.Result{}, fmt.Errorf("invalid mcpServerRef: name missing")
 		}
 
-		var mcpCertServer mcpv1.McpCertifiedServer
+		var mcpCertServer mcpv1alpha1.McpCertifiedServer
 		ns := mcpServerRun.Namespace
 		if ref.Namespace != nil {
 			ns = *ref.Namespace
@@ -250,7 +250,7 @@ func (r *McpServerRunReconciler) Reconcile(ctx context.Context, req ctrl.Request
 // SetupWithManager sets up the controller with the Manager.
 func (r *McpServerRunReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&mcpv1.McpServerRun{}).
+		For(&mcpv1alpha1.McpServerRun{}).
 		Named("mcpserverrun").
 		Complete(r)
 }

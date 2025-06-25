@@ -1,4 +1,4 @@
-apiVersion: mcp.opendatahub.io/v1
+apiVersion: mcp.opendatahub.io/v1alpha1
 kind: McpServerRun
 metadata:
   labels:
@@ -15,7 +15,7 @@ spec:
     mcpServerRef:
       name: kubernetes-mcpserver
 ---
-apiVersion: mcp.opendatahub.io/v1
+apiVersion: mcp.opendatahub.io/v1alpha1
 kind: McpServerRun
 metadata:
   labels:
@@ -31,7 +31,7 @@ spec:
     guardian: true
     server-uri: https://my-git-server:8000/sse
 ---
-apiVersion: mcp.opendatahub.io/v1
+apiVersion: mcp.opendatahub.io/v1alpha1
 kind: McpServerRun
 metadata:
   labels:

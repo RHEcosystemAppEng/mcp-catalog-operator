@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1
+package v1alpha1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -23,42 +23,37 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// McpServerImportJobSpec defines the desired state of McpServerImportJob.
-type McpServerImportJobSpec struct {
-	// Reference to the MCP Catalog to import the servers into
-	CatalogRef CatalogRef `json:"catalogRef"`
-
-	// Reference to the MCP Registry to import the servers from
-	RegistryURI string `json:"registryUri"`
+// McpServerCertJobSpec defines the desired state of McpServerCertJob.
+type McpServerCertJobSpec struct {
+	// Reference to the McpServer to be certified
+	ServerRef ServerRef `json:"serverRef,omitempty"`
 }
 
-// McpServerImportJobStatus defines the observed state of McpServerImportJob.
-type McpServerImportJobStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+// McpServerCertJobStatus defines the observed state of McpServerCertJob.
+type McpServerCertJobStatus struct {
 }
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 
-// McpServerImportJob is the Schema for the mcpserverimportjobs API.
-type McpServerImportJob struct {
+// McpServerCertJob is the Schema for the mcpservercertjobs API.
+type McpServerCertJob struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   McpServerImportJobSpec   `json:"spec,omitempty"`
-	Status McpServerImportJobStatus `json:"status,omitempty"`
+	Spec   McpServerCertJobSpec   `json:"spec,omitempty"`
+	Status McpServerCertJobStatus `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-// McpServerImportJobList contains a list of McpServerImportJob.
-type McpServerImportJobList struct {
+// McpServerCertJobList contains a list of McpServerCertJob.
+type McpServerCertJobList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []McpServerImportJob `json:"items"`
+	Items           []McpServerCertJob `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&McpServerImportJob{}, &McpServerImportJobList{})
+	SchemeBuilder.Register(&McpServerCertJob{}, &McpServerCertJobList{})
 }

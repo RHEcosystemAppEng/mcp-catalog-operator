@@ -27,7 +27,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
-	mcpv1 "github.com/dmartinol/mcp-registry-operator/api/v1"
+	mcpv1alpha1 "github.com/dmartinol/mcp-registry-operator/api/v1alpha1"
 )
 
 // McpCertifiedServerReconciler reconciles a McpCertifiedServer object
@@ -53,7 +53,7 @@ func (r *McpCertifiedServerReconciler) Reconcile(ctx context.Context, req ctrl.R
 	_ = logf.FromContext(ctx)
 
 	// TODO(user): your logic here
-	var mcpCertifiedServer mcpv1.McpCertifiedServer
+	var mcpCertifiedServer mcpv1alpha1.McpCertifiedServer
 	if err := r.Get(ctx, req.NamespacedName, &mcpCertifiedServer); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
@@ -62,7 +62,7 @@ func (r *McpCertifiedServerReconciler) Reconcile(ctx context.Context, req ctrl.R
 		return ctrl.Result{}, fmt.Errorf("invalid catalogRef: name missing")
 	}
 
-	var mcpCatalog mcpv1.McpCatalog
+	var mcpCatalog mcpv1alpha1.McpCatalog
 	ns := mcpCertifiedServer.Namespace
 	if ref.Namespace != nil {
 		ns = *ref.Namespace
@@ -89,7 +89,7 @@ func (r *McpCertifiedServerReconciler) Reconcile(ctx context.Context, req ctrl.R
 // SetupWithManager sets up the controller with the Manager.
 func (r *McpCertifiedServerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&mcpv1.McpCertifiedServer{}).
+		For(&mcpv1alpha1.McpCertifiedServer{}).
 		Named("mcpcertifiedserver").
 		Complete(r)
 }

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1
+package v1alpha1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -22,19 +22,20 @@ import (
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-type RegistryRef struct {
+
+type CatalogRef struct {
 	Name      string  `json:"name"`
 	Namespace *string `json:"namespace,omitempty"`
 }
 
-// McpRegistrySpec defines the desired state of McpRegistry.
-type McpRegistrySpec struct {
-	Description string       `json:"description"`
-	Catalogs    []CatalogRef `json:"catalogs"`
+// McpCatalogSpec defines the desired state of McpCatalog.
+type McpCatalogSpec struct {
+	Description   string `json:"description,omitempty"`
+	ImageRegistry string `json:"imageRegistry,omitempty"`
 }
 
-// McpRegistryStatus defines the observed state of McpRegistry.
-type McpRegistryStatus struct {
+// McpCatalogStatus defines the observed state of McpCatalog.
+type McpCatalogStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 }
@@ -42,24 +43,24 @@ type McpRegistryStatus struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 
-// McpRegistry is the Schema for the mcpregistries API.
-type McpRegistry struct {
+// McpCatalog is the Schema for the mcpcatalogs API.
+type McpCatalog struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   McpRegistrySpec   `json:"spec,omitempty"`
-	Status McpRegistryStatus `json:"status,omitempty"`
+	Spec   McpCatalogSpec   `json:"spec,omitempty"`
+	Status McpCatalogStatus `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-// McpRegistryList contains a list of McpRegistry.
-type McpRegistryList struct {
+// McpCatalogList contains a list of McpCatalog.
+type McpCatalogList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []McpRegistry `json:"items"`
+	Items           []McpCatalog `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&McpRegistry{}, &McpRegistryList{})
+	SchemeBuilder.Register(&McpCatalog{}, &McpCatalogList{})
 }

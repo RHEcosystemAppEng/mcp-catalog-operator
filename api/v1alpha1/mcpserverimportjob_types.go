@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1
+package v1alpha1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -23,19 +23,17 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-type CatalogRef struct {
-	Name      string  `json:"name"`
-	Namespace *string `json:"namespace,omitempty"`
+// McpServerImportJobSpec defines the desired state of McpServerImportJob.
+type McpServerImportJobSpec struct {
+	// Reference to the MCP Catalog to import the servers into
+	CatalogRef CatalogRef `json:"catalogRef"`
+
+	// Reference to the MCP Registry to import the servers from
+	RegistryURI string `json:"registryUri"`
 }
 
-// McpCatalogSpec defines the desired state of McpCatalog.
-type McpCatalogSpec struct {
-	Description   string `json:"description,omitempty"`
-	ImageRegistry string `json:"imageRegistry,omitempty"`
-}
-
-// McpCatalogStatus defines the observed state of McpCatalog.
-type McpCatalogStatus struct {
+// McpServerImportJobStatus defines the observed state of McpServerImportJob.
+type McpServerImportJobStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 }
@@ -43,24 +41,24 @@ type McpCatalogStatus struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 
-// McpCatalog is the Schema for the mcpcatalogs API.
-type McpCatalog struct {
+// McpServerImportJob is the Schema for the mcpserverimportjobs API.
+type McpServerImportJob struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   McpCatalogSpec   `json:"spec,omitempty"`
-	Status McpCatalogStatus `json:"status,omitempty"`
+	Spec   McpServerImportJobSpec   `json:"spec,omitempty"`
+	Status McpServerImportJobStatus `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-// McpCatalogList contains a list of McpCatalog.
-type McpCatalogList struct {
+// McpServerImportJobList contains a list of McpServerImportJob.
+type McpServerImportJobList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []McpCatalog `json:"items"`
+	Items           []McpServerImportJob `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&McpCatalog{}, &McpCatalogList{})
+	SchemeBuilder.Register(&McpServerImportJob{}, &McpServerImportJobList{})
 }

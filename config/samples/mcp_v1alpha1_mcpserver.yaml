@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=../crd/bases/mcp.opendatahub.io_mcpservers.yaml
-apiVersion: mcp.opendatahub.io/v1
+apiVersion: mcp.opendatahub.io/v1alpha1
 kind: McpServer
 metadata:
   labels:

@@ -27,7 +27,7 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	mcpv1 "github.com/dmartinol/mcp-registry-operator/api/v1"
+	mcpv1alpha1 "github.com/dmartinol/mcp-registry-operator/api/v1alpha1"
 )
 
 var _ = Describe("McpServerRun Controller", func() {
@@ -41,13 +41,13 @@ var _ = Describe("McpServerRun Controller", func() {
 			Name:      resourceName,
 			Namespace: namespace,
 		}
-		mcpserverrun := &mcpv1.McpServerRun{
+		mcpserverrun := &mcpv1alpha1.McpServerRun{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      resourceName,
 				Namespace: namespace,
 			},
-			Spec: mcpv1.McpServerRunSpec{
-				RegistryRef: mcpv1.RegistryRef{
+			Spec: mcpv1alpha1.McpServerRunSpec{
+				RegistryRef: mcpv1alpha1.RegistryRef{
 					Name:      "test-server",
 					Namespace: &namespace,
 				},
@@ -64,7 +64,7 @@ var _ = Describe("McpServerRun Controller", func() {
 
 		AfterEach(func() {
 			// TODO(user): Cleanup logic after each test, like removing the resource instance.
-			resource := &mcpv1.McpServerRun{}
+			resource := &mcpv1alpha1.McpServerRun{}
 			err := k8sClient.Get(ctx, typeNamespacedName, resource)
 			Expect(err).NotTo(HaveOccurred())
 

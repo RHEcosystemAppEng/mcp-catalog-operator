@@ -31,7 +31,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
-	mcpv1 "github.com/dmartinol/mcp-registry-operator/api/v1"
+	mcpv1alpha1 "github.com/dmartinol/mcp-registry-operator/api/v1alpha1"
 )
 
 // McpRegistryReconciler reconciles a McpRegistry object
@@ -59,7 +59,7 @@ type McpRegistryReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.20.4/pkg/reconcile
 func (r *McpRegistryReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	var mcpRegistry mcpv1.McpRegistry
+	var mcpRegistry mcpv1alpha1.McpRegistry
 	if err := r.Get(ctx, req.NamespacedName, &mcpRegistry); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
@@ -229,7 +229,7 @@ func (r *McpRegistryReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 // SetupWithManager sets up the controller with the Manager.
 func (r *McpRegistryReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&mcpv1.McpRegistry{}).
+		For(&mcpv1alpha1.McpRegistry{}).
 		Named("mcpregistry").
 		Complete(r)
 }

@@ -26,14 +26,14 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	mcpv1 "github.com/dmartinol/mcp-registry-operator/api/v1"
+	mcpv1alpha1 "github.com/dmartinol/mcp-registry-operator/api/v1alpha1"
 )
 
 // Test helper functions
-func createMcpCertifiedServerSpec(options ...func(*mcpv1.McpCertifiedServerSpec)) mcpv1.McpCertifiedServerSpec {
+func createMcpCertifiedServerSpec(options ...func(*mcpv1alpha1.McpCertifiedServerSpec)) mcpv1alpha1.McpCertifiedServerSpec {
 	namespace := "default"
-	spec := mcpv1.McpCertifiedServerSpec{
-		CatalogRef: mcpv1.CatalogRef{
+	spec := mcpv1alpha1.McpCertifiedServerSpec{
+		CatalogRef: mcpv1alpha1.CatalogRef{
 			Name:      "test-registry",
 			Namespace: &namespace,
 		},
@@ -41,7 +41,7 @@ func createMcpCertifiedServerSpec(options ...func(*mcpv1.McpCertifiedServerSpec)
 		Provider:     "test",
 		License:      "MIT",
 		Competencies: []string{"test"},
-		McpServer: mcpv1.McpCertifiedServerServerSpec{
+		McpServer: mcpv1alpha1.McpCertifiedServerServerSpec{
 			Image:   "quay.io/ecosystem-appeng/mcp-registry:amd64-0.1",
 			Command: "mcp-registry",
 			Args:    []string{"--port", "8080"},
@@ -57,8 +57,8 @@ func createMcpCertifiedServerSpec(options ...func(*mcpv1.McpCertifiedServerSpec)
 	return spec
 }
 
-func withCatalogRef(name, namespace string) func(*mcpv1.McpCertifiedServerSpec) {
-	return func(spec *mcpv1.McpCertifiedServerSpec) {
+func withCatalogRef(name, namespace string) func(*mcpv1alpha1.McpCertifiedServerSpec) {
+	return func(spec *mcpv1alpha1.McpCertifiedServerSpec) {
 		spec.CatalogRef.Name = name
 		if namespace != "" {
 			spec.CatalogRef.Namespace = &namespace
@@ -66,20 +66,20 @@ func withCatalogRef(name, namespace string) func(*mcpv1.McpCertifiedServerSpec) 
 	}
 }
 
-func withCompetencies(competencies []string) func(*mcpv1.McpCertifiedServerSpec) {
-	return func(spec *mcpv1.McpCertifiedServerSpec) {
+func withCompetencies(competencies []string) func(*mcpv1alpha1.McpCertifiedServerSpec) {
+	return func(spec *mcpv1alpha1.McpCertifiedServerSpec) {
 		spec.Competencies = competencies
 	}
 }
 
-func withImage(image string) func(*mcpv1.McpCertifiedServerSpec) {
-	return func(spec *mcpv1.McpCertifiedServerSpec) {
+func withImage(image string) func(*mcpv1alpha1.McpCertifiedServerSpec) {
+	return func(spec *mcpv1alpha1.McpCertifiedServerSpec) {
 		spec.McpServer.Image = image
 	}
 }
 
-func createMcpCertifiedServer(name, namespace string, spec mcpv1.McpCertifiedServerSpec) *mcpv1.McpCertifiedServer {
-	return &mcpv1.McpCertifiedServer{
+func createMcpCertifiedServer(name, namespace string, spec mcpv1alpha1.McpCertifiedServerSpec) *mcpv1alpha1.McpCertifiedServer {
+	return &mcpv1alpha1.McpCertifiedServer{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
@@ -88,7 +88,7 @@ func createMcpCertifiedServer(name, namespace string, spec mcpv1.McpCertifiedSer
 	}
 }
 
-func createAndExpectResource(ctx context.Context, resource *mcpv1.McpCertifiedServer, shouldSucceed bool) {
+func createAndExpectResource(ctx context.Context, resource *mcpv1alpha1.McpCertifiedServer, shouldSucceed bool) {
 	err := k8sClient.Create(ctx, resource)
 	if shouldSucceed {
 		Expect(err).To(Succeed())
@@ -98,7 +98,7 @@ func createAndExpectResource(ctx context.Context, resource *mcpv1.McpCertifiedSe
 }
 
 func cleanupResource(ctx context.Context, namespacedName types.NamespacedName) {
-	resource := &mcpv1.McpCertifiedServer{}
+	resource := &mcpv1alpha1.McpCertifiedServer{}
 	err := k8sClient.Get(ctx, namespacedName, resource)
 	if err == nil {
 		Expect(k8sClient.Delete(ctx, resource)).To(Succeed())
@@ -111,7 +111,7 @@ var _ = Describe("McpCertifiedServer Controller", func() {
 
 	Context("When reconciling a resource", func() {
 		DescribeTable("different McpCertifiedServer configurations",
-			func(resourceName string, specOptions []func(*mcpv1.McpCertifiedServerSpec), shouldCreateSucceed bool, shouldReconcileSucceed bool) {
+			func(resourceName string, specOptions []func(*mcpv1alpha1.McpCertifiedServerSpec), shouldCreateSucceed bool, shouldReconcileSucceed bool) {
 				typeNamespacedName := types.NamespacedName{
 					Name:      resourceName,
 					Namespace: namespace,
@@ -145,19 +145,19 @@ var _ = Describe("McpCertifiedServer Controller", func() {
 			},
 			Entry("with missing registry reference",
 				"test-missing-registry",
-				[]func(*mcpv1.McpCertifiedServerSpec){withCatalogRef("non-existent-registry", namespace)},
+				[]func(*mcpv1alpha1.McpCertifiedServerSpec){withCatalogRef("non-existent-registry", namespace)},
 				true,  // creation should succeed
 				false, // reconcile should fail
 			),
 			Entry("with different competencies",
 				"test-different-competencies",
-				[]func(*mcpv1.McpCertifiedServerSpec){withCompetencies([]string{"ai", "search", "tools"})},
+				[]func(*mcpv1alpha1.McpCertifiedServerSpec){withCompetencies([]string{"ai", "search", "tools"})},
 				true,  // creation should succeed
 				false, // reconcile should fail (no registry)
 			),
 			Entry("with custom image",
 				"test-custom-image",
-				[]func(*mcpv1.McpCertifiedServerSpec){withImage("custom:latest")},
+				[]func(*mcpv1alpha1.McpCertifiedServerSpec){withImage("custom:latest")},
 				true,  // creation should succeed
 				false, // reconcile should fail (no registry)
 			),
