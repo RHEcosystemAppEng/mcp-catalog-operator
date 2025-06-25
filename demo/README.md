@@ -72,7 +72,7 @@ oc port-forward svc/red-hat-ecosystem-mcp-catalog-svc 8000:8000
 
 Select one server definition and promote it:
 ```
-SERVER_NAME="$(oc get mcpserver -n mcp-catalog | grep tavily-mcp | head -1 | cut -d ' ' -f 1)" \
+SERVER_NAME="$(oc get mcpservers -n mcp-catalog | grep tavily-mcp | head -1 | cut -d ' ' -f 1)" \
   && echo "$SERVER_NAME" \
   && curl -X POST "localhost:8000/promote?server_definition_name=$SERVER_NAME"
 ```

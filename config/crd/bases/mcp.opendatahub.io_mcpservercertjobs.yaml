@@ -4,20 +4,20 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.17.2
-  name: mcpregistries.mcp.opendatahub.io
+  name: mcpservercertjobs.mcp.opendatahub.io
 spec:
   group: mcp.opendatahub.io
   names:
-    kind: McpRegistry
-    listKind: McpRegistryList
-    plural: mcpregistries
-    singular: mcpregistry
+    kind: McpServerCertJob
+    listKind: McpServerCertJobList
+    plural: mcpservercertjobs
+    singular: mcpservercertjob
   scope: Namespaced
   versions:
   - name: v1
     schema:
       openAPIV3Schema:
-        description: McpRegistry is the Schema for the mcpregistries API.
+        description: McpServerCertJob is the Schema for the mcpservercertjobs API.
         properties:
           apiVersion:
             description: |-
@@ -37,27 +37,21 @@ spec:
           metadata:
             type: object
           spec:
-            description: McpRegistrySpec defines the desired state of McpRegistry.
+            description: McpServerCertJobSpec defines the desired state of McpServerCertJob.
             properties:
-              catalogs:
-                items:
-                  properties:
-                    name:
-                      type: string
-                    namespace:
-                      type: string
-                  required:
-                  - name
-                  type: object
-                type: array
-              description:
-                type: string
-            required:
-            - catalogs
-            - description
+              serverRef:
+                description: Reference to the McpServer to be certified
+                properties:
+                  name:
+                    type: string
+                  namespace:
+                    type: string
+                required:
+                - name
+                type: object
             type: object
           status:
-            description: McpRegistryStatus defines the observed state of McpRegistry.
+            description: McpServerCertJobStatus defines the observed state of McpServerCertJob.
             type: object
         type: object
     served: true

@@ -22,44 +22,38 @@ import (
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-type RegistryRef struct {
-	Name      string  `json:"name"`
-	Namespace *string `json:"namespace,omitempty"`
+
+// McpServerCertJobSpec defines the desired state of McpServerCertJob.
+type McpServerCertJobSpec struct {
+	// Reference to the McpServer to be certified
+	ServerRef ServerRef `json:"serverRef,omitempty"`
 }
 
-// McpRegistrySpec defines the desired state of McpRegistry.
-type McpRegistrySpec struct {
-	Description string       `json:"description"`
-	Catalogs    []CatalogRef `json:"catalogs"`
-}
-
-// McpRegistryStatus defines the observed state of McpRegistry.
-type McpRegistryStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+// McpServerCertJobStatus defines the observed state of McpServerCertJob.
+type McpServerCertJobStatus struct {
 }
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 
-// McpRegistry is the Schema for the mcpregistries API.
-type McpRegistry struct {
+// McpServerCertJob is the Schema for the mcpservercertjobs API.
+type McpServerCertJob struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   McpRegistrySpec   `json:"spec,omitempty"`
-	Status McpRegistryStatus `json:"status,omitempty"`
+	Spec   McpServerCertJobSpec   `json:"spec,omitempty"`
+	Status McpServerCertJobStatus `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-// McpRegistryList contains a list of McpRegistry.
-type McpRegistryList struct {
+// McpServerCertJobList contains a list of McpServerCertJob.
+type McpServerCertJobList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []McpRegistry `json:"items"`
+	Items           []McpServerCertJob `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&McpRegistry{}, &McpRegistryList{})
+	SchemeBuilder.Register(&McpServerCertJob{}, &McpServerCertJobList{})
 }

@@ -22,6 +22,10 @@ import (
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
+type ServerRef struct {
+	Name      string  `json:"name"`
+	Namespace *string `json:"namespace,omitempty"`
+}
 
 // START copy from https://github.com/modelcontextprotocol/registry
 
@@ -141,7 +145,8 @@ type ServerDetail struct {
 
 // McpServerSpec defines the desired state of McpServer.
 type McpServerSpec struct {
-	ServerDetail `json:"server_detail"`
+	CatalogRef   CatalogRef   `json:"catalogRef,omitempty"`
+	ServerDetail ServerDetail `json:"server_detail"`
 }
 
 // McpServerStatus defines the observed state of McpServer.

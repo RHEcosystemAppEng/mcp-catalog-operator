@@ -32,8 +32,11 @@ rules:
 - apiGroups:
   - mcp.opendatahub.io
   resources:
+  - mcpcatalogs
   - mcpcertifiedservers
   - mcpregistries
+  - mcpservercertjobs
+  - mcpserverimportjobs
   - mcpserverruns
   - mcpservers
   verbs:
@@ -47,8 +50,11 @@ rules:
 - apiGroups:
   - mcp.opendatahub.io
   resources:
+  - mcpcatalogs/finalizers
   - mcpcertifiedservers/finalizers
   - mcpregistries/finalizers
+  - mcpservercertjobs/finalizers
+  - mcpserverimportjobs/finalizers
   - mcpserverruns/finalizers
   - mcpservers/finalizers
   verbs:
@@ -56,8 +62,11 @@ rules:
 - apiGroups:
   - mcp.opendatahub.io
   resources:
+  - mcpcatalogs/status
   - mcpcertifiedservers/status
   - mcpregistries/status
+  - mcpservercertjobs/status
+  - mcpserverimportjobs/status
   - mcpserverruns/status
   - mcpservers/status
   verbs:

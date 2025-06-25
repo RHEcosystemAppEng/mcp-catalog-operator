@@ -13,3 +13,14 @@ resources:
 # default, aiding admins in cluster management. Those roles are
 # not used by the {{ .ProjectName }} itself. You can comment the following lines
 # if you do not want those helpers be installed with your Project.
+- mcpcatalog_admin_role.yaml
+- mcpcatalog_editor_role.yaml
+- mcpcatalog_viewer_role.yaml
+- mcpservercertjob_admin_role.yaml
+- mcpservercertjob_editor_role.yaml
+- mcpservercertjob_viewer_role.yaml
+- mcpserverimportjob_admin_role.yaml
+- mcpserverimportjob_editor_role.yaml
+- mcpserverimportjob_viewer_role.yaml
+
+

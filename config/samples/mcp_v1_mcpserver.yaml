@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../crd/bases/mcp.opendatahub.io_mcpservers.yaml
 apiVersion: mcp.opendatahub.io/v1
 kind: McpServer
 metadata:
@@ -6,6 +7,8 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
   name: uns-mcp
 spec:
+  catalogRef:
+    name: red-hat-ecosystem-mcp-catalog
   server_detail:
     id: 8b01f838-0cb6-4c17-b381-108713321d6d
     name: io.github.unstructured-io/uns-mcp

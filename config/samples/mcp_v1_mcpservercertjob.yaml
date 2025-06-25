@@ -1,11 +1,10 @@
 apiVersion: mcp.opendatahub.io/v1
-kind: McpRegistry
+kind: McpServerCertJob
 metadata:
   labels:
     app.kubernetes.io/name: mcp-registry-operator
     app.kubernetes.io/managed-by: kustomize
-  name: mcp-registry
+  name: mcpservercertjob-sample
 spec:
-  catalogs:
-    - name: red-hat-ecosystem-mcp-catalog
-  description: MCP registry for the tenant
+  serverRef:
+    name: uns-mcp

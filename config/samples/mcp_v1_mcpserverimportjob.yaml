@@ -1,11 +1,11 @@
 apiVersion: mcp.opendatahub.io/v1
-kind: McpRegistry
+kind: McpServerImportJob
 metadata:
   labels:
     app.kubernetes.io/name: mcp-registry-operator
     app.kubernetes.io/managed-by: kustomize
-  name: mcp-registry
+  name: mcpserverimportjob-sample
 spec:
-  catalogs:
-    - name: red-hat-ecosystem-mcp-catalog
-  description: MCP registry for the tenant
+  catalogRef:
+    name: red-hat-ecosystem-mcp-catalog
+  registryUri: 'http://mcp-registry.com'

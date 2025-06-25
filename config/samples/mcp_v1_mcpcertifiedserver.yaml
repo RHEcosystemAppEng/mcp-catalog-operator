@@ -6,7 +6,7 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
   name: kubernetes-mcpserver
 spec:
-  registryRef:
+  catalogRef:
     name: red-hat-ecosystem-mcp-catalog
   description: >
     # Kubernetes MCP Server

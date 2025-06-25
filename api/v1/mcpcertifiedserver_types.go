@@ -33,7 +33,7 @@ type McpCertifiedServerServerSpec struct {
 
 // McpCertifiedServerSpec defines the desired state of McpCertifiedServer.
 type McpCertifiedServerSpec struct {
-	RegistryRef  RegistryRef                  `json:"registryRef,omitempty"`
+	CatalogRef   CatalogRef                   `json:"catalogRef,omitempty"`
 	Description  string                       `json:"description"`
 	Provider     string                       `json:"provider"`
 	License      string                       `json:"license"`

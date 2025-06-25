@@ -22,19 +22,18 @@ import (
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-type RegistryRef struct {
-	Name      string  `json:"name"`
-	Namespace *string `json:"namespace,omitempty"`
+
+// McpServerImportJobSpec defines the desired state of McpServerImportJob.
+type McpServerImportJobSpec struct {
+	// Reference to the MCP Catalog to import the servers into
+	CatalogRef CatalogRef `json:"catalogRef"`
+
+	// Reference to the MCP Registry to import the servers from
+	RegistryURI string `json:"registryUri"`
 }
 
-// McpRegistrySpec defines the desired state of McpRegistry.
-type McpRegistrySpec struct {
-	Description string       `json:"description"`
-	Catalogs    []CatalogRef `json:"catalogs"`
-}
-
-// McpRegistryStatus defines the observed state of McpRegistry.
-type McpRegistryStatus struct {
+// McpServerImportJobStatus defines the observed state of McpServerImportJob.
+type McpServerImportJobStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 }
@@ -42,24 +41,24 @@ type McpRegistryStatus struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 
-// McpRegistry is the Schema for the mcpregistries API.
-type McpRegistry struct {
+// McpServerImportJob is the Schema for the mcpserverimportjobs API.
+type McpServerImportJob struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   McpRegistrySpec   `json:"spec,omitempty"`
-	Status McpRegistryStatus `json:"status,omitempty"`
+	Spec   McpServerImportJobSpec   `json:"spec,omitempty"`
+	Status McpServerImportJobStatus `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-// McpRegistryList contains a list of McpRegistry.
-type McpRegistryList struct {
+// McpServerImportJobList contains a list of McpServerImportJob.
+type McpServerImportJobList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []McpRegistry `json:"items"`
+	Items           []McpServerImportJob `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&McpRegistry{}, &McpRegistryList{})
+	SchemeBuilder.Register(&McpServerImportJob{}, &McpServerImportJobList{})
 }

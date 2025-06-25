@@ -6,6 +6,9 @@ resources:
 - bases/mcp.opendatahub.io_mcpservers.yaml
 - bases/mcp.opendatahub.io_mcpcertifiedservers.yaml
 - bases/mcp.opendatahub.io_mcpserverruns.yaml
+- bases/mcp.opendatahub.io_mcpserverimportjobs.yaml
+- bases/mcp.opendatahub.io_mcpservercertjobs.yaml
+- bases/mcp.opendatahub.io_mcpcatalogs.yaml
 # +kubebuilder:scaffold:crdkustomizeresource
 
 patches:

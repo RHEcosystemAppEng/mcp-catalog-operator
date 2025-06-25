@@ -7,7 +7,7 @@ metadata:
   name: local-kubernetes-mcpserver
 spec:
   registryRef:
-    name: red-hat-ecosystem-mcp-catalog
+    name: mcp-registry
   replicas: 1
   server-mode: blueprint
   mcpServer:
@@ -24,7 +24,7 @@ metadata:
   name: ext-git-server
 spec:
   registryRef:
-    name: red-hat-ecosystem-mcp-catalog
+    name: mcp-registry
   replicas: 1
   server-mode: remote
   mcpServer:
@@ -40,7 +40,7 @@ metadata:
   name: ext-mcpserver
 spec:
   registryRef:
-    name: red-hat-ecosystem-mcp-catalog
+    name: mcp-registry
   replicas: 1
   envFrom:
     - secretRef:

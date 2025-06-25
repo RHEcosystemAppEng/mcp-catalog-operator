@@ -33,7 +33,7 @@ import (
 func createMcpCertifiedServerSpec(options ...func(*mcpv1.McpCertifiedServerSpec)) mcpv1.McpCertifiedServerSpec {
 	namespace := "default"
 	spec := mcpv1.McpCertifiedServerSpec{
-		RegistryRef: mcpv1.RegistryRef{
+		CatalogRef: mcpv1.CatalogRef{
 			Name:      "test-registry",
 			Namespace: &namespace,
 		},
@@ -57,11 +57,11 @@ func createMcpCertifiedServerSpec(options ...func(*mcpv1.McpCertifiedServerSpec)
 	return spec
 }
 
-func withRegistryRef(name, namespace string) func(*mcpv1.McpCertifiedServerSpec) {
+func withCatalogRef(name, namespace string) func(*mcpv1.McpCertifiedServerSpec) {
 	return func(spec *mcpv1.McpCertifiedServerSpec) {
-		spec.RegistryRef.Name = name
+		spec.CatalogRef.Name = name
 		if namespace != "" {
-			spec.RegistryRef.Namespace = &namespace
+			spec.CatalogRef.Namespace = &namespace
 		}
 	}
 }
@@ -145,7 +145,7 @@ var _ = Describe("McpCertifiedServer Controller", func() {
 			},
 			Entry("with missing registry reference",
 				"test-missing-registry",
-				[]func(*mcpv1.McpCertifiedServerSpec){withRegistryRef("non-existent-registry", namespace)},
+				[]func(*mcpv1.McpCertifiedServerSpec){withCatalogRef("non-existent-registry", namespace)},
 				true,  // creation should succeed
 				false, // reconcile should fail
 			),
@@ -173,7 +173,7 @@ var _ = Describe("McpCertifiedServer Controller", func() {
 			}
 
 			By("creating the custom resource for the Kind McpCertifiedServer with no McpRegistry")
-			spec := createMcpCertifiedServerSpec(withRegistryRef("missing-registry", namespace))
+			spec := createMcpCertifiedServerSpec(withCatalogRef("missing-registry", namespace))
 			resource := createMcpCertifiedServer(resourceName, namespace, spec)
 
 			Expect(k8sClient.Create(ctx, resource)).To(Succeed())

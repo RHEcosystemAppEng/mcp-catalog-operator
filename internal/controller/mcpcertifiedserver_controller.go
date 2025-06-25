@@ -57,23 +57,23 @@ func (r *McpCertifiedServerReconciler) Reconcile(ctx context.Context, req ctrl.R
 	if err := r.Get(ctx, req.NamespacedName, &mcpCertifiedServer); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
-	ref := mcpCertifiedServer.Spec.RegistryRef
+	ref := mcpCertifiedServer.Spec.CatalogRef
 	if ref.Name == "" {
-		return ctrl.Result{}, fmt.Errorf("invalid registryRef: name missing")
+		return ctrl.Result{}, fmt.Errorf("invalid catalogRef: name missing")
 	}
 
-	var mcpRegistry mcpv1.McpRegistry
+	var mcpCatalog mcpv1.McpCatalog
 	ns := mcpCertifiedServer.Namespace
 	if ref.Namespace != nil {
 		ns = *ref.Namespace
 	}
-	fmt.Printf("Looking for McpRegistry %s in %s", ref.Name, ns)
-	if err := r.Get(ctx, types.NamespacedName{Name: ref.Name, Namespace: ns}, &mcpRegistry); err != nil {
-		return ctrl.Result{}, fmt.Errorf("failed to get referenced McpRegistry: %w", err)
+	fmt.Printf("Looking for McpCatalog %s in %s", ref.Name, ns)
+	if err := r.Get(ctx, types.NamespacedName{Name: ref.Name, Namespace: ns}, &mcpCatalog); err != nil {
+		return ctrl.Result{}, fmt.Errorf("failed to get referenced McpCatalog: %w", err)
 	}
 
-	// Set McpRegistry as owner of McpCertifiedServer
-	if err := controllerutil.SetControllerReference(&mcpRegistry, &mcpCertifiedServer, r.Scheme); err != nil {
+	// Set McpCatalog as owner of McpCertifiedServer
+	if err := controllerutil.SetControllerReference(&mcpCatalog, &mcpCertifiedServer, r.Scheme); err != nil {
 		return ctrl.Result{}, fmt.Errorf("failed to set owner reference: %w", err)
 	}
 
