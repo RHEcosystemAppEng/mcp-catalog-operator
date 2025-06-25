@@ -21,11 +21,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type ServerPoolRef struct {
-	Name      string  `json:"name"`
-	Namespace *string `json:"namespace,omitempty"`
-}
-
 type McpServerRef struct {
 	Name      string  `json:"name"`
 	Namespace *string `json:"namespace,omitempty"`
@@ -53,11 +48,11 @@ type McpServerConfig struct {
 }
 
 type McpServerRunSpec struct {
-	Replicas      *int32                 `json:"replicas,omitempty"`
-	EnvFrom       []corev1.EnvFromSource `json:"envFrom,omitempty"`
-	ServerPoolRef ServerPoolRef          `json:"serverPoolRef,omitempty"`
-	ServerMode    string                 `json:"server-mode"` // must be "blueprint", "container" or "remote"
-	McpServer     McpServerConfig        `json:"mcpServer"`
+	Replicas    *int32                 `json:"replicas,omitempty"`
+	EnvFrom     []corev1.EnvFromSource `json:"envFrom,omitempty"`
+	RegistryRef RegistryRef            `json:"registryRef,omitempty"`
+	ServerMode  string                 `json:"server-mode"` // must be "blueprint", "container" or "remote"
+	McpServer   McpServerConfig        `json:"mcpServer"`
 }
 
 // McpServerRunStatus defines the observed state of McpServer.

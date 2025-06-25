@@ -47,7 +47,7 @@ var _ = Describe("McpServerRun Controller", func() {
 				Namespace: namespace,
 			},
 			Spec: mcpv1.McpServerRunSpec{
-				ServerPoolRef: mcpv1.ServerPoolRef{
+				RegistryRef: mcpv1.RegistryRef{
 					Name:      "test-server",
 					Namespace: &namespace,
 				},

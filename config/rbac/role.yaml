@@ -34,7 +34,6 @@ rules:
   resources:
   - mcpcertifiedservers
   - mcpregistries
-  - mcpserverpools
   - mcpserverruns
   - mcpservers
   verbs:
@@ -50,7 +49,6 @@ rules:
   resources:
   - mcpcertifiedservers/finalizers
   - mcpregistries/finalizers
-  - mcpserverpools/finalizers
   - mcpserverruns/finalizers
   - mcpservers/finalizers
   verbs:
@@ -60,7 +58,6 @@ rules:
   resources:
   - mcpcertifiedservers/status
   - mcpregistries/status
-  - mcpserverpools/status
   - mcpserverruns/status
   - mcpservers/status
   verbs:

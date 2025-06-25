@@ -3,6 +3,5 @@ resources:
 - mcp_v1_mcpregistry.yaml
 - mcp_v1_mcpserver.yaml
 - mcp_v1_mcpcertifiedserver.yaml
-- mcp_v1_mcpserverpool.yaml
 - mcp_v1_mcpserverrun.yaml
 # +kubebuilder:scaffold:manifestskustomizesamples

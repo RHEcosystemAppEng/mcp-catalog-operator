@@ -92,7 +92,6 @@ func (r *McpRegistryReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		"mcpregistry-admin-role",
 		"mcpserver-admin-role",
 		"mcpcertifiedserver-admin-role",
-		"mcpserverpool-admin-role",
 		"pipeline-as-code-controller-clusterrole"} {
 		crbName := fmt.Sprintf("%s-is-%s", saName, role)
 		crb := rbacv1.RoleBinding{

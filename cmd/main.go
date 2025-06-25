@@ -223,13 +223,6 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "McpServerRun")
 		os.Exit(1)
 	}
-	if err = (&controller.McpServerPoolReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "McpServerPool")
-		os.Exit(1)
-	}
 	if err = (&controller.McpServerReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),

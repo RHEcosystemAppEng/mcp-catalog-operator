@@ -64,9 +64,9 @@ func (r *McpServerRunReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	var command string
 	args := mcpServerRun.Spec.McpServer.Args
 
-	serverPoolRef := mcpServerRun.Spec.ServerPoolRef
-	if serverPoolRef.Name == "" {
-		return ctrl.Result{}, fmt.Errorf("invalid serverPoolRef: name missing")
+	registryRef := mcpServerRun.Spec.RegistryRef
+	if registryRef.Name == "" {
+		return ctrl.Result{}, fmt.Errorf("invalid registryRef: name missing")
 	}
 
 	authConfig := mcpServerRun.Spec.McpServer.Auth
@@ -76,18 +76,18 @@ func (r *McpServerRunReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		fmt.Printf("Initialized auth to %v", authConfig)
 	}
 
-	var serverPool mcpv1.McpServerPool
-	serverPoolNs := mcpServerRun.Namespace
-	if serverPoolRef.Namespace != nil {
-		serverPoolNs = *serverPoolRef.Namespace
+	var registry mcpv1.McpRegistry
+	registryNs := mcpServerRun.Namespace
+	if registryRef.Namespace != nil {
+		registryNs = *registryRef.Namespace
 	}
-	fmt.Printf("Looking for McpServerPool %s in %s", serverPoolRef.Name, serverPoolNs)
-	if err := r.Get(ctx, types.NamespacedName{Name: serverPoolRef.Name, Namespace: serverPoolNs}, &serverPool); err != nil {
-		return ctrl.Result{}, fmt.Errorf("failed to get referenced McpServerPool: %w", err)
+	fmt.Printf("Looking for McpRegistry %s in %s", registryRef.Name, registryNs)
+	if err := r.Get(ctx, types.NamespacedName{Name: registryRef.Name, Namespace: registryNs}, &registry); err != nil {
+		return ctrl.Result{}, fmt.Errorf("failed to get referenced McpRegistry: %w", err)
 	}
 
-	// Set McpServerPool as owner of McpServerRun
-	if err := controllerutil.SetControllerReference(&serverPool, &mcpServerRun, r.Scheme); err != nil {
+	// Set McpRegistry as owner of McpServerRun
+	if err := controllerutil.SetControllerReference(&registry, &mcpServerRun, r.Scheme); err != nil {
 		return ctrl.Result{}, fmt.Errorf("failed to set owner reference: %w", err)
 	}
 

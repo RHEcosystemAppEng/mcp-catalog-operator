@@ -41,15 +41,6 @@ resources:
   controller: true
   domain: opendatahub.io
   group: mcp
-  kind: McpServerPool
-  path: github.com/dmartinol/mcp-registry-operator/api/v1
-  version: v1
-- api:
-    crdVersion: v1
-    namespaced: true
-  controller: true
-  domain: opendatahub.io
-  group: mcp
   kind: McpServer
   path: github.com/dmartinol/mcp-registry-operator/api/v1
   version: v1

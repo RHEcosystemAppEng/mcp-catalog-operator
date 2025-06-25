@@ -6,8 +6,8 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
   name: local-kubernetes-mcpserver
 spec:
-  serverPoolRef:
-    name: my-ns-registry
+  registryRef:
+    name: red-hat-ecosystem-mcp-catalog
   replicas: 1
   server-mode: blueprint
   mcpServer:
@@ -23,8 +23,8 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
   name: ext-git-server
 spec:
-  serverPoolRef:
-    name: my-cluster-registry
+  registryRef:
+    name: red-hat-ecosystem-mcp-catalog
   replicas: 1
   server-mode: remote
   mcpServer:
@@ -39,8 +39,8 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
   name: ext-mcpserver
 spec:
-  serverPoolRef:
-    name: my-cluster-registry
+  registryRef:
+    name: red-hat-ecosystem-mcp-catalog
   replicas: 1
   envFrom:
     - secretRef:
