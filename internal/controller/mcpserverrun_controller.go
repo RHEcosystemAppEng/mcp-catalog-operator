@@ -104,19 +104,19 @@ func (r *McpServerRunReconciler) Reconcile(ctx context.Context, req ctrl.Request
 			return ctrl.Result{}, fmt.Errorf("invalid mcpServerRef: name missing")
 		}
 
-		var mcpServer mcpv1.McpServer
+		var mcpCertServer mcpv1.McpCertifiedServer
 		ns := mcpServerRun.Namespace
 		if ref.Namespace != nil {
 			ns = *ref.Namespace
 		}
-		fmt.Printf("Looking for McpServer %s in %s", ref.Name, ns)
-		if err := r.Get(ctx, types.NamespacedName{Name: ref.Name, Namespace: ns}, &mcpServer); err != nil {
-			return ctrl.Result{}, fmt.Errorf("failed to get referenced McpServer: %w", err)
+		fmt.Printf("Looking for McpCertifiedServer %s in %s", ref.Name, ns)
+		if err := r.Get(ctx, types.NamespacedName{Name: ref.Name, Namespace: ns}, &mcpCertServer); err != nil {
+			return ctrl.Result{}, fmt.Errorf("failed to get referenced McpCertifiedServer: %w", err)
 		}
 
-		serverImage = &mcpServer.Spec.McpServer.Image
-		command = mcpServer.Spec.McpServer.Command
-		args = append(args, mcpServer.Spec.McpServer.Args...)
+		serverImage = &mcpCertServer.Spec.McpServer.Image
+		command = mcpCertServer.Spec.McpServer.Command
+		args = append(args, mcpCertServer.Spec.McpServer.Args...)
 	}
 
 	if mcpServerRun.Spec.ServerMode == "container" {

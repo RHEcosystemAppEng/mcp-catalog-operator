@@ -87,10 +87,11 @@ func (r *McpRegistryReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return ctrl.Result{}, fmt.Errorf("failed to set owner reference on ServiceAccount: %w", err)
 	}
 
+	// TODO: we really need these? Use K8S API Job instead and remove this code
 	for _, role := range []string{
 		"mcpregistry-admin-role",
 		"mcpserver-admin-role",
-		// "mcpserverdefinition-admin-role",
+		"mcpcertifiedserver-admin-role",
 		"mcpserverpool-admin-role",
 		"pipeline-as-code-controller-clusterrole"} {
 		crbName := fmt.Sprintf("%s-is-%s", saName, role)

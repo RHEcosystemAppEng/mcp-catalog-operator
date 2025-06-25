@@ -40,11 +40,11 @@ var _ = Describe("McpServer Controller", func() {
 			Name:      resourceName,
 			Namespace: "default", // TODO(user):Modify as needed
 		}
-		mcpServer := &mcpv1.McpServer{}
+		mcpserver := &mcpv1.McpServer{}
 
 		BeforeEach(func() {
 			By("creating the custom resource for the Kind McpServer")
-			err := k8sClient.Get(ctx, typeNamespacedName, mcpServer)
+			err := k8sClient.Get(ctx, typeNamespacedName, mcpserver)
 			if err != nil && errors.IsNotFound(err) {
 				resource := &mcpv1.McpServer{
 					ObjectMeta: metav1.ObjectMeta{
@@ -68,7 +68,7 @@ var _ = Describe("McpServer Controller", func() {
 		})
 		It("should successfully reconcile the resource", func() {
 			By("Reconciling the created resource")
-			controllerReconciler := &McpServerRunReconciler{
+			controllerReconciler := &McpServerReconciler{
 				Client: k8sClient,
 				Scheme: k8sClient.Scheme(),
 			}

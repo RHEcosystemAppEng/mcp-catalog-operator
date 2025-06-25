@@ -27,26 +27,26 @@ import (
 	mcpv1 "github.com/dmartinol/mcp-registry-operator/api/v1"
 )
 
-// McpServerDefinitionReconciler reconciles a McpServerDefinition object
-type McpServerDefinitionReconciler struct {
+// McpServerReconciler reconciles a McpServer object
+type McpServerReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
 }
 
-// +kubebuilder:rbac:groups=mcp.opendatahub.io,resources=mcpserverdefinitions,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=mcp.opendatahub.io,resources=mcpserverdefinitions/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=mcp.opendatahub.io,resources=mcpserverdefinitions/finalizers,verbs=update
+// +kubebuilder:rbac:groups=mcp.opendatahub.io,resources=mcpservers,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=mcp.opendatahub.io,resources=mcpservers/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=mcp.opendatahub.io,resources=mcpservers/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
 // TODO(user): Modify the Reconcile function to compare the state specified by
-// the McpServerDefinition object against the actual cluster state, and then
+// the McpServer object against the actual cluster state, and then
 // perform operations to make the cluster state reflect the state specified by
 // the user.
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.20.4/pkg/reconcile
-func (r *McpServerDefinitionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *McpServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = logf.FromContext(ctx)
 
 	// TODO(user): your logic here
@@ -55,9 +55,9 @@ func (r *McpServerDefinitionReconciler) Reconcile(ctx context.Context, req ctrl.
 }
 
 // SetupWithManager sets up the controller with the Manager.
-func (r *McpServerDefinitionReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *McpServerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&mcpv1.McpServerDefinition{}).
-		Named("mcpserverdefinition").
+		For(&mcpv1.McpServer{}).
+		Named("mcpserver").
 		Complete(r)
 }

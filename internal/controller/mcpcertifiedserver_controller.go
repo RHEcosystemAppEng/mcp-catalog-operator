@@ -30,40 +30,40 @@ import (
 	mcpv1 "github.com/dmartinol/mcp-registry-operator/api/v1"
 )
 
-// McpServerReconciler reconciles a McpServer object
-type McpServerReconciler struct {
+// McpCertifiedServerReconciler reconciles a McpCertifiedServer object
+type McpCertifiedServerReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
 }
 
-// +kubebuilder:rbac:groups=mcp.opendatahub.io,resources=mcpservers,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=mcp.opendatahub.io,resources=mcpservers/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=mcp.opendatahub.io,resources=mcpservers/finalizers,verbs=update
+// +kubebuilder:rbac:groups=mcp.opendatahub.io,resources=mcpcertifiedservers,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=mcp.opendatahub.io,resources=mcpcertifiedservers/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=mcp.opendatahub.io,resources=mcpcertifiedservers/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
 // TODO(user): Modify the Reconcile function to compare the state specified by
-// the McpServer object against the actual cluster state, and then
+// the McpCertifiedServer object against the actual cluster state, and then
 // perform operations to make the cluster state reflect the state specified by
 // the user.
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.20.4/pkg/reconcile
-func (r *McpServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *McpCertifiedServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = logf.FromContext(ctx)
 
 	// TODO(user): your logic here
-	var mcpServer mcpv1.McpServer
-	if err := r.Get(ctx, req.NamespacedName, &mcpServer); err != nil {
+	var mcpCertifiedServer mcpv1.McpCertifiedServer
+	if err := r.Get(ctx, req.NamespacedName, &mcpCertifiedServer); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
-	ref := mcpServer.Spec.RegistryRef
+	ref := mcpCertifiedServer.Spec.RegistryRef
 	if ref.Name == "" {
 		return ctrl.Result{}, fmt.Errorf("invalid registryRef: name missing")
 	}
 
 	var mcpRegistry mcpv1.McpRegistry
-	ns := mcpServer.Namespace
+	ns := mcpCertifiedServer.Namespace
 	if ref.Namespace != nil {
 		ns = *ref.Namespace
 	}
@@ -72,14 +72,14 @@ func (r *McpServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		return ctrl.Result{}, fmt.Errorf("failed to get referenced McpRegistry: %w", err)
 	}
 
-	// Set McpRegistry as owner of McpServer
-	if err := controllerutil.SetControllerReference(&mcpRegistry, &mcpServer, r.Scheme); err != nil {
+	// Set McpRegistry as owner of McpCertifiedServer
+	if err := controllerutil.SetControllerReference(&mcpRegistry, &mcpCertifiedServer, r.Scheme); err != nil {
 		return ctrl.Result{}, fmt.Errorf("failed to set owner reference: %w", err)
 	}
 
 	// Persist change if necessary
-	if err := r.Update(ctx, &mcpServer); err != nil {
-		return ctrl.Result{}, fmt.Errorf("failed to update McpServer with owner ref: %w", err)
+	if err := r.Update(ctx, &mcpCertifiedServer); err != nil {
+		return ctrl.Result{}, fmt.Errorf("failed to update McpCertifiedServer with owner ref: %w", err)
 	}
 
 	// Continue with normal reconcile logic...
@@ -87,9 +87,9 @@ func (r *McpServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 }
 
 // SetupWithManager sets up the controller with the Manager.
-func (r *McpServerReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *McpCertifiedServerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&mcpv1.McpServer{}).
-		Named("mcpserver").
+		For(&mcpv1.McpCertifiedServer{}).
+		Named("mcpcertifiedserver").
 		Complete(r)
 }

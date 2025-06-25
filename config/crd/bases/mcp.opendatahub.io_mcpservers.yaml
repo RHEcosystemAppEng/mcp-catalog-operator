@@ -39,53 +39,317 @@ spec:
           spec:
             description: McpServerSpec defines the desired state of McpServer.
             properties:
-              competencies:
-                items:
-                  type: string
-                type: array
-              description:
-                type: string
-              license:
-                type: string
-              mcpServer:
+              server_detail:
+                description: ServerDetail represents detailed server information as
+                  defined in the spec
                 properties:
-                  args:
-                    items:
-                      type: string
-                    type: array
-                  command:
+                  description:
                     type: string
-                  envVars:
-                    items:
-                      type: string
-                    type: array
-                  image:
+                  id:
                     type: string
-                  proxy:
-                    type: boolean
-                required:
-                - args
-                - command
-                - envVars
-                - image
-                type: object
-              provider:
-                type: string
-              registryRef:
-                properties:
                   name:
                     type: string
-                  namespace:
-                    type: string
+                  packages:
+                    items:
+                      properties:
+                        environment_variables:
+                          items:
+                            properties:
+                              choices:
+                                items:
+                                  type: string
+                                type: array
+                              default:
+                                type: string
+                              description:
+                                type: string
+                              format:
+                                description: create an enum for Format
+                                type: string
+                              is_required:
+                                type: boolean
+                              is_secret:
+                                type: boolean
+                              name:
+                                type: string
+                              properties:
+                                additionalProperties:
+                                  type: string
+                                type: object
+                              template:
+                                type: string
+                              value:
+                                type: string
+                              variables:
+                                additionalProperties:
+                                  description: UserInput represents a user input as
+                                    defined in the spec
+                                  properties:
+                                    choices:
+                                      items:
+                                        type: string
+                                      type: array
+                                    default:
+                                      type: string
+                                    description:
+                                      type: string
+                                    format:
+                                      description: create an enum for Format
+                                      type: string
+                                    is_required:
+                                      type: boolean
+                                    is_secret:
+                                      type: boolean
+                                    properties:
+                                      additionalProperties:
+                                        type: string
+                                      type: object
+                                    template:
+                                      type: string
+                                    value:
+                                      type: string
+                                  type: object
+                                type: object
+                            required:
+                            - name
+                            type: object
+                          type: array
+                        name:
+                          type: string
+                        package_arguments:
+                          items:
+                            description: RuntimeArgument defines a type that can be
+                              either a PositionalArgument or a NamedArgument
+                            properties:
+                              choices:
+                                items:
+                                  type: string
+                                type: array
+                              default:
+                                type: string
+                              description:
+                                type: string
+                              format:
+                                description: create an enum for Format
+                                type: string
+                              is_repeated:
+                                type: boolean
+                              is_required:
+                                type: boolean
+                              is_secret:
+                                type: boolean
+                              name:
+                                type: string
+                              properties:
+                                additionalProperties:
+                                  type: string
+                                type: object
+                              template:
+                                type: string
+                              type:
+                                type: string
+                              value:
+                                type: string
+                              value_hint:
+                                type: string
+                              variables:
+                                additionalProperties:
+                                  description: UserInput represents a user input as
+                                    defined in the spec
+                                  properties:
+                                    choices:
+                                      items:
+                                        type: string
+                                      type: array
+                                    default:
+                                      type: string
+                                    description:
+                                      type: string
+                                    format:
+                                      description: create an enum for Format
+                                      type: string
+                                    is_required:
+                                      type: boolean
+                                    is_secret:
+                                      type: boolean
+                                    properties:
+                                      additionalProperties:
+                                        type: string
+                                      type: object
+                                    template:
+                                      type: string
+                                    value:
+                                      type: string
+                                  type: object
+                                type: object
+                            required:
+                            - type
+                            type: object
+                          type: array
+                        registry_name:
+                          type: string
+                        runtime_arguments:
+                          items:
+                            description: RuntimeArgument defines a type that can be
+                              either a PositionalArgument or a NamedArgument
+                            properties:
+                              choices:
+                                items:
+                                  type: string
+                                type: array
+                              default:
+                                type: string
+                              description:
+                                type: string
+                              format:
+                                description: create an enum for Format
+                                type: string
+                              is_repeated:
+                                type: boolean
+                              is_required:
+                                type: boolean
+                              is_secret:
+                                type: boolean
+                              name:
+                                type: string
+                              properties:
+                                additionalProperties:
+                                  type: string
+                                type: object
+                              template:
+                                type: string
+                              type:
+                                type: string
+                              value:
+                                type: string
+                              value_hint:
+                                type: string
+                              variables:
+                                additionalProperties:
+                                  description: UserInput represents a user input as
+                                    defined in the spec
+                                  properties:
+                                    choices:
+                                      items:
+                                        type: string
+                                      type: array
+                                    default:
+                                      type: string
+                                    description:
+                                      type: string
+                                    format:
+                                      description: create an enum for Format
+                                      type: string
+                                    is_required:
+                                      type: boolean
+                                    is_secret:
+                                      type: boolean
+                                    properties:
+                                      additionalProperties:
+                                        type: string
+                                      type: object
+                                    template:
+                                      type: string
+                                    value:
+                                      type: string
+                                  type: object
+                                type: object
+                            required:
+                            - type
+                            type: object
+                          type: array
+                        runtime_hint:
+                          type: string
+                        version:
+                          type: string
+                      required:
+                      - name
+                      - registry_name
+                      - version
+                      type: object
+                    type: array
+                  remotes:
+                    items:
+                      description: Remote represents a remote connection endpoint
+                      properties:
+                        headers:
+                          items:
+                            description: UserInput represents a user input as defined
+                              in the spec
+                            properties:
+                              choices:
+                                items:
+                                  type: string
+                                type: array
+                              default:
+                                type: string
+                              description:
+                                type: string
+                              format:
+                                description: create an enum for Format
+                                type: string
+                              is_required:
+                                type: boolean
+                              is_secret:
+                                type: boolean
+                              properties:
+                                additionalProperties:
+                                  type: string
+                                type: object
+                              template:
+                                type: string
+                              value:
+                                type: string
+                            type: object
+                          type: array
+                        transport_type:
+                          type: string
+                        url:
+                          type: string
+                      required:
+                      - transport_type
+                      - url
+                      type: object
+                    type: array
+                  repository:
+                    description: Repository represents a source code repository as
+                      defined in the spec
+                    properties:
+                      id:
+                        type: string
+                      source:
+                        type: string
+                      url:
+                        type: string
+                    required:
+                    - id
+                    - source
+                    - url
+                    type: object
+                  version_detail:
+                    description: VersionDetail represents the version details of a
+                      server
+                    properties:
+                      is_latest:
+                        type: boolean
+                      release_date:
+                        type: string
+                      version:
+                        type: string
+                    required:
+                    - is_latest
+                    - release_date
+                    - version
+                    type: object
                 required:
+                - description
+                - id
                 - name
+                - repository
+                - version_detail
                 type: object
             required:
-            - competencies
-            - description
-            - license
-            - mcpServer
-            - provider
+            - server_detail
             type: object
           status:
             description: McpServerStatus defines the observed state of McpServer.

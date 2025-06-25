@@ -32,8 +32,8 @@ rules:
 - apiGroups:
   - mcp.opendatahub.io
   resources:
+  - mcpcertifiedservers
   - mcpregistries
-  - mcpserverdefinitions
   - mcpserverpools
   - mcpserverruns
   - mcpservers
@@ -48,8 +48,8 @@ rules:
 - apiGroups:
   - mcp.opendatahub.io
   resources:
+  - mcpcertifiedservers/finalizers
   - mcpregistries/finalizers
-  - mcpserverdefinitions/finalizers
   - mcpserverpools/finalizers
   - mcpserverruns/finalizers
   - mcpservers/finalizers
@@ -58,8 +58,8 @@ rules:
 - apiGroups:
   - mcp.opendatahub.io
   resources:
+  - mcpcertifiedservers/status
   - mcpregistries/status
-  - mcpserverdefinitions/status
   - mcpserverpools/status
   - mcpserverruns/status
   - mcpservers/status

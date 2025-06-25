@@ -1,0 +1,12 @@
+resources:
+- role.yaml
+# [WEBHOOK] To enable webhook, uncomment the following line
+#- role_binding.yaml
+# Uncomment the following line to add leader election permissions
+# - leader_election_role.yaml
+# - leader_election_role_binding.yaml
+# Uncomment the following line to add metrics permissions  
+# - metrics_reader_role.yaml
+# - auth_proxy_service.yaml
+# - auth_proxy_role.yaml
+# - auth_proxy_role_binding.yaml 

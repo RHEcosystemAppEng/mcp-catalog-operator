@@ -23,27 +23,125 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-type RegistryRef struct {
-	Name      string  `json:"name"`
-	Namespace *string `json:"namespace,omitempty"`
+// START copy from https://github.com/modelcontextprotocol/registry
+
+// AuthMethod represents the authentication method used
+type AuthMethod string
+
+const (
+	// AuthMethodGitHub represents GitHub OAuth authentication
+	AuthMethodGitHub AuthMethod = "github"
+	// AuthMethodNone represents no authentication
+	AuthMethodNone AuthMethod = "none"
+)
+
+// Authentication holds information about the authentication method and credentials
+type Authentication struct {
+	Method  AuthMethod `json:"method,omitempty"`
+	Token   string     `json:"token,omitempty"`
+	RepoRef string     `json:"repo_ref,omitempty"`
 }
 
-type McpServerServerSpec struct {
-	Proxy   *bool    `json:"proxy,omitempty"`
-	Image   string   `json:"image"`
-	Command string   `json:"command"`
-	Args    []string `json:"args"`
-	EnvVars []string `json:"envVars"`
+// Repository represents a source code repository as defined in the spec
+type Repository struct {
+	URL    string `json:"url"`
+	Source string `json:"source"`
+	ID     string `json:"id"`
 }
+
+// create an enum for Format
+type Format string
+
+const (
+	FormatString   Format = "string"
+	FormatNumber   Format = "number"
+	FormatBoolean  Format = "boolean"
+	FormatFilePath Format = "file_path"
+)
+
+// UserInput represents a user input as defined in the spec
+type Input struct {
+	Description string            `json:"description,omitempty"`
+	IsRequired  bool              `json:"is_required,omitempty"`
+	Format      Format            `json:"format,omitempty"`
+	Value       string            `json:"value,omitempty"`
+	IsSecret    bool              `json:"is_secret,omitempty"`
+	Default     string            `json:"default,omitempty"`
+	Choices     []string          `json:"choices,omitempty"`
+	Template    string            `json:"template,omitempty"`
+	Properties  map[string]string `json:"properties,omitempty"`
+}
+
+type InputWithVariables struct {
+	Input     `json:",inline"`
+	Variables map[string]Input `json:"variables,omitempty"`
+}
+
+type KeyValueInput struct {
+	InputWithVariables `json:",inline"`
+	Name               string `json:"name"`
+}
+type ArgumentType string
+
+const (
+	ArgumentTypePositional ArgumentType = "positional"
+	ArgumentTypeNamed      ArgumentType = "named"
+)
+
+// RuntimeArgument defines a type that can be either a PositionalArgument or a NamedArgument
+type Argument struct {
+	InputWithVariables `json:",inline"`
+	Type               ArgumentType `json:"type"`
+	Name               string       `json:"name,omitempty"`
+	IsRepeated         bool         `json:"is_repeated,omitempty"`
+	ValueHint          string       `json:"value_hint,omitempty"`
+}
+
+type Package struct {
+	RegistryName         string          `json:"registry_name"`
+	Name                 string          `json:"name"`
+	Version              string          `json:"version"`
+	RunTimeHint          string          `json:"runtime_hint,omitempty"`
+	RuntimeArguments     []Argument      `json:"runtime_arguments,omitempty"`
+	PackageArguments     []Argument      `json:"package_arguments,omitempty"`
+	EnvironmentVariables []KeyValueInput `json:"environment_variables,omitempty"`
+}
+
+// Remote represents a remote connection endpoint
+type Remote struct {
+	TransportType string  `json:"transport_type"`
+	URL           string  `json:"url"`
+	Headers       []Input `json:"headers,omitempty"`
+}
+
+// VersionDetail represents the version details of a server
+type VersionDetail struct {
+	Version     string `json:"version"`
+	ReleaseDate string `json:"release_date"`
+	IsLatest    bool   `json:"is_latest"`
+}
+
+// Server represents a basic server information as defined in the spec
+type Server struct {
+	ID            string        `json:"id"`
+	Name          string        `json:"name"`
+	Description   string        `json:"description"`
+	Repository    Repository    `json:"repository"`
+	VersionDetail VersionDetail `json:"version_detail"`
+}
+
+// ServerDetail represents detailed server information as defined in the spec
+type ServerDetail struct {
+	Server   `json:",inline"`
+	Packages []Package `json:"packages,omitempty"`
+	Remotes  []Remote  `json:"remotes,omitempty"`
+}
+
+// END copy from https://github.com/modelcontextprotocol/registry
 
 // McpServerSpec defines the desired state of McpServer.
 type McpServerSpec struct {
-	RegistryRef  RegistryRef         `json:"registryRef,omitempty"`
-	Description  string              `json:"description"`
-	Provider     string              `json:"provider"`
-	License      string              `json:"license"`
-	Competencies []string            `json:"competencies"`
-	McpServer    McpServerServerSpec `json:"mcpServer"`
+	ServerDetail `json:"server_detail"`
 }
 
 // McpServerStatus defines the observed state of McpServer.

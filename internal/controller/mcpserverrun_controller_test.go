@@ -35,25 +35,30 @@ var _ = Describe("McpServerRun Controller", func() {
 		const resourceName = "test-resource"
 
 		ctx := context.Background()
+		namespace := "default"
 
 		typeNamespacedName := types.NamespacedName{
 			Name:      resourceName,
-			Namespace: "default", // TODO(user):Modify as needed
+			Namespace: namespace,
 		}
-		mcpserver := &mcpv1.McpServerRun{}
+		mcpserverrun := &mcpv1.McpServerRun{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      resourceName,
+				Namespace: namespace,
+			},
+			Spec: mcpv1.McpServerRunSpec{
+				ServerPoolRef: mcpv1.ServerPoolRef{
+					Name:      "test-server",
+					Namespace: &namespace,
+				},
+			},
+		}
 
 		BeforeEach(func() {
 			By("creating the custom resource for the Kind McpServerRun")
-			err := k8sClient.Get(ctx, typeNamespacedName, mcpserver)
+			err := k8sClient.Get(ctx, typeNamespacedName, mcpserverrun)
 			if err != nil && errors.IsNotFound(err) {
-				resource := &mcpv1.McpServerRun{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      resourceName,
-						Namespace: "default",
-					},
-					// TODO(user): Specify other spec details if needed.
-				}
-				Expect(k8sClient.Create(ctx, resource)).To(Succeed())
+				Expect(k8sClient.Create(ctx, mcpserverrun)).To(Succeed())
 			}
 		})
 
@@ -76,7 +81,7 @@ var _ = Describe("McpServerRun Controller", func() {
 			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{
 				NamespacedName: typeNamespacedName,
 			})
-			Expect(err).NotTo(HaveOccurred())
+			Expect(err).To(HaveOccurred())
 			// TODO(user): Add more specific assertions depending on your controller's reconciliation logic.
 			// Example: If you expect a certain status condition after reconciliation, verify it here.
 		})
