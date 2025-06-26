@@ -20,8 +20,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
+// Validation messages
+const (
+	ValidationMessageCatalogNotFound = "referenced catalog does not exist"
+	ValidationMessageServerSuccess   = "McpServer spec is valid"
+)
+
 type ServerRef struct {
 	Name      string  `json:"name"`
 	Namespace *string `json:"namespace,omitempty"`
@@ -151,8 +155,10 @@ type McpServerSpec struct {
 
 // McpServerStatus defines the observed state of McpServer.
 type McpServerStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// Conditions represent the latest available observations of a McpCatalog's current state.
+	// +listType=map
+	// +listMapKey=type
+	Conditions []metav1.Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type"`
 }
 
 // +kubebuilder:object:root=true

@@ -70,7 +70,7 @@ func (r *McpCatalogReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		r.setReadyCondition(mcpCatalog, metav1.ConditionFalse, mcpv1alpha1.ConditionReasonValidationFailed, validationErr.Error())
 	} else {
 		log.Info("Successfully validated McpCatalog", "name", mcpCatalog.Name, "namespace", mcpCatalog.Namespace)
-		r.setReadyCondition(mcpCatalog, metav1.ConditionTrue, mcpv1alpha1.ConditionReasonValidationSucceeded, mcpv1alpha1.ValidationMessageSuccess)
+		r.setReadyCondition(mcpCatalog, metav1.ConditionTrue, mcpv1alpha1.ConditionReasonValidationSucceeded, mcpv1alpha1.ValidationMessageCatalogSuccess)
 	}
 
 	// Update the status

@@ -91,7 +91,7 @@ var _ = Describe("McpCatalog Controller", func() {
 				// Check that the Ready condition is set to True
 				Expect(readyCondition.Status).To(Equal(metav1.ConditionTrue))
 				Expect(readyCondition.Reason).To(Equal(mcpv1alpha1.ConditionReasonValidationSucceeded))
-				Expect(readyCondition.Message).To(Equal(mcpv1alpha1.ValidationMessageSuccess))
+				Expect(readyCondition.Message).To(Equal(mcpv1alpha1.ValidationMessageCatalogSuccess))
 			}, 5*time.Second, 100*time.Millisecond).Should(Succeed())
 
 		})

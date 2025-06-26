@@ -18,7 +18,10 @@ package controller
 
 import (
 	"context"
+	"time"
 
+	"k8s.io/apimachinery/pkg/api/meta"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -47,9 +50,57 @@ type McpServerReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.20.4/pkg/reconcile
 func (r *McpServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = logf.FromContext(ctx)
+	log := logf.FromContext(ctx)
 
-	// TODO(user): your logic here
+	mcpServer := &mcpv1alpha1.McpServer{}
+	err := r.Get(ctx, req.NamespacedName, mcpServer)
+	if err != nil {
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	// Determine the namespace to look for the catalog
+	catalogNamespace := mcpServer.Namespace
+	if mcpServer.Spec.CatalogRef.Namespace != nil && *mcpServer.Spec.CatalogRef.Namespace != "" {
+		catalogNamespace = *mcpServer.Spec.CatalogRef.Namespace
+	}
+
+	catalogName := mcpServer.Spec.CatalogRef.Name
+	catalogKey := client.ObjectKey{Name: catalogName, Namespace: catalogNamespace}
+	catalog := &mcpv1alpha1.McpCatalog{}
+	catalogExists := true
+	if err := r.Get(ctx, catalogKey, catalog); err != nil {
+		catalogExists = false
+	}
+
+	var readyCondition metav1.Condition
+	now := metav1.NewTime(time.Now())
+	if catalogExists {
+		readyCondition = metav1.Condition{
+			Type:               mcpv1alpha1.ConditionTypeReady,
+			Status:             metav1.ConditionTrue,
+			Reason:             mcpv1alpha1.ConditionReasonValidationSucceeded,
+			Message:            mcpv1alpha1.ValidationMessageServerSuccess,
+			LastTransitionTime: now,
+			ObservedGeneration: mcpServer.Generation,
+		}
+		log.Info("Referenced catalog found", "catalog", catalogName, "namespace", catalogNamespace)
+	} else {
+		readyCondition = metav1.Condition{
+			Type:               mcpv1alpha1.ConditionTypeReady,
+			Status:             metav1.ConditionFalse,
+			Reason:             mcpv1alpha1.ConditionReasonValidationFailed,
+			Message:            mcpv1alpha1.ValidationMessageCatalogNotFound,
+			LastTransitionTime: now,
+			ObservedGeneration: mcpServer.Generation,
+		}
+		log.Info("Referenced catalog NOT found", "catalog", catalogName, "namespace", catalogNamespace)
+	}
+
+	meta.SetStatusCondition(&mcpServer.Status.Conditions, readyCondition)
+	if err := r.Status().Update(ctx, mcpServer); err != nil {
+		log.Error(err, "Failed to update McpServer status")
+		return ctrl.Result{}, err
+	}
 
 	return ctrl.Result{}, nil
 }
