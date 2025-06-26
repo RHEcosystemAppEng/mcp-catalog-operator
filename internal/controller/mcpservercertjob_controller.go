@@ -24,7 +24,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
-	mcpv1alpha1 "github.com/dmartinol/mcp-registry-operator/api/v1alpha1"
+	mcpv1alpha1 "github.com/RHEcosystemAppEng/mcp-registry-operator/api/v1alpha1"
 )
 
 // McpServerCertJobReconciler reconciles a McpServerCertJob object

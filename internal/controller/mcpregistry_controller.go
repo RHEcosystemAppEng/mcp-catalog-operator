@@ -31,7 +31,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
-	mcpv1alpha1 "github.com/dmartinol/mcp-registry-operator/api/v1alpha1"
+	mcpv1alpha1 "github.com/RHEcosystemAppEng/mcp-registry-operator/api/v1alpha1"
 )
 
 // McpRegistryReconciler reconciles a McpRegistry object

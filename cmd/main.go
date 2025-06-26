@@ -37,8 +37,8 @@ import (
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
-	mcpv1alpha1 "github.com/dmartinol/mcp-registry-operator/api/v1alpha1"
-	"github.com/dmartinol/mcp-registry-operator/internal/controller"
+	mcpv1alpha1 "github.com/RHEcosystemAppEng/mcp-registry-operator/api/v1alpha1"
+	"github.com/RHEcosystemAppEng/mcp-registry-operator/internal/controller"
 	// +kubebuilder:scaffold:imports
 )
 

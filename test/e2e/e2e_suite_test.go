@@ -25,7 +25,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/dmartinol/mcp-registry-operator/test/utils"
+	"github.com/RHEcosystemAppEng/mcp-registry-operator/test/utils"
 )
 
 var (

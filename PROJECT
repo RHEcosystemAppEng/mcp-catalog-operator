@@ -6,7 +6,7 @@ domain: opendatahub.io
 layout:
 - go.kubebuilder.io/v4
 projectName: mcp-registry-operator
-repo: github.com/dmartinol/mcp-registry-operator
+repo: github.com/RHEcosystemAppEng/mcp-registry-operator
 resources:
 - api:
     crdVersion: v1
@@ -15,7 +15,7 @@ resources:
   domain: opendatahub.io
   group: mcp
   kind: McpRegistry
-  path: github.com/dmartinol/mcp-registry-operator/api/v1alpha1
+  path: github.com/RHEcosystemAppEng/mcp-registry-operator/api/v1alpha1
   version: v1
 - api:
     crdVersion: v1
@@ -24,7 +24,7 @@ resources:
   domain: opendatahub.io
   group: mcp
   kind: McpCertifiedServer
-  path: github.com/dmartinol/mcp-registry-operator/api/v1alpha1
+  path: github.com/RHEcosystemAppEng/mcp-registry-operator/api/v1alpha1
   version: v1
 - api:
     crdVersion: v1
@@ -33,7 +33,7 @@ resources:
   domain: opendatahub.io
   group: mcp
   kind: McpServerRun
-  path: github.com/dmartinol/mcp-registry-operator/api/v1alpha1
+  path: github.com/RHEcosystemAppEng/mcp-registry-operator/api/v1alpha1
   version: v1
 - api:
     crdVersion: v1
@@ -42,7 +42,7 @@ resources:
   domain: opendatahub.io
   group: mcp
   kind: McpServer
-  path: github.com/dmartinol/mcp-registry-operator/api/v1alpha1
+  path: github.com/RHEcosystemAppEng/mcp-registry-operator/api/v1alpha1
   version: v1
 - api:
     crdVersion: v1
@@ -51,7 +51,7 @@ resources:
   domain: opendatahub.io
   group: mcp
   kind: McpServerImportJob
-  path: github.com/dmartinol/mcp-registry-operator/api/v1alpha1
+  path: github.com/RHEcosystemAppEng/mcp-registry-operator/api/v1alpha1
   version: v1
 - api:
     crdVersion: v1
@@ -60,7 +60,7 @@ resources:
   domain: opendatahub.io
   group: mcp
   kind: McpServerCertJob
-  path: github.com/dmartinol/mcp-registry-operator/api/v1alpha1
+  path: github.com/RHEcosystemAppEng/mcp-registry-operator/api/v1alpha1
   version: v1
 - api:
     crdVersion: v1
@@ -69,6 +69,6 @@ resources:
   domain: opendatahub.io
   group: mcp
   kind: McpCatalog
-  path: github.com/dmartinol/mcp-registry-operator/api/v1alpha1
+  path: github.com/RHEcosystemAppEng/mcp-registry-operator/api/v1alpha1
   version: v1
 version: "3"
