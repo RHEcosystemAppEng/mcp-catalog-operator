@@ -20,8 +20,29 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
+// Condition types
+const (
+	// ConditionTypeReady represents the Ready condition type
+	ConditionTypeReady = "Ready"
+)
+
+// Condition reasons
+const (
+	// ConditionReasonValidationSucceeded represents successful validation
+	ConditionReasonValidationSucceeded = "ValidationSucceeded"
+	// ConditionReasonValidationFailed represents failed validation
+	ConditionReasonValidationFailed = "ValidationFailed"
+)
+
+// Validation messages
+const (
+	// ValidationMessageDescriptionRequired represents the error message for missing description
+	ValidationMessageDescriptionRequired = "description field is required and cannot be empty or null"
+	// ValidationMessageImageRegistryRequired represents the error message for missing imageRegistry
+	ValidationMessageImageRegistryRequired = "imageRegistry field is required and cannot be empty or null"
+	// ValidationMessageSuccess represents the success message for valid spec
+	ValidationMessageSuccess = "McpCatalog spec is valid"
+)
 
 type CatalogRef struct {
 	Name      string  `json:"name"`
@@ -29,15 +50,18 @@ type CatalogRef struct {
 }
 
 // McpCatalogSpec defines the desired state of McpCatalog.
+// +kubebuilder:validation:XValidation:rule=has(self.description) && size(self.description) > 0 && has(self.imageRegistry) && size(self.imageRegistry) > 0, message="Both description and imageRegistry are required and cannot be empty."
 type McpCatalogSpec struct {
-	Description   string `json:"description,omitempty"`
-	ImageRegistry string `json:"imageRegistry,omitempty"`
+	Description   string `json:"description"`
+	ImageRegistry string `json:"imageRegistry"`
 }
 
 // McpCatalogStatus defines the observed state of McpCatalog.
 type McpCatalogStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// Conditions represent the latest available observations of a McpCatalog's current state.
+	// +listType=map
+	// +listMapKey=type
+	Conditions []metav1.Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type"`
 }
 
 // +kubebuilder:object:root=true
@@ -48,7 +72,7 @@ type McpCatalog struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   McpCatalogSpec   `json:"spec,omitempty"`
+	Spec   McpCatalogSpec   `json:"spec"`
 	Status McpCatalogStatus `json:"status,omitempty"`
 }
 

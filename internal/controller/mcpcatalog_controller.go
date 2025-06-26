@@ -18,7 +18,12 @@ package controller
 
 import (
 	"context"
+	"fmt"
+	"strings"
+	"time"
 
+	"k8s.io/apimachinery/pkg/api/meta"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -47,11 +52,79 @@ type McpCatalogReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.20.4/pkg/reconcile
 func (r *McpCatalogReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = logf.FromContext(ctx)
+	log := logf.FromContext(ctx)
 
-	// TODO(user): your logic here
+	// Fetch the McpCatalog instance
+	mcpCatalog := &mcpv1alpha1.McpCatalog{}
+	err := r.Get(ctx, req.NamespacedName, mcpCatalog)
+	if err != nil {
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	// Validate the McpCatalog spec
+	validationErr := r.validateMcpCatalog(mcpCatalog)
+
+	// Update status based on validation result
+	if validationErr != nil {
+		log.Error(validationErr, "Validation failed for McpCatalog", "name", mcpCatalog.Name, "namespace", mcpCatalog.Namespace)
+		r.setReadyCondition(mcpCatalog, metav1.ConditionFalse, mcpv1alpha1.ConditionReasonValidationFailed, validationErr.Error())
+	} else {
+		log.Info("Successfully validated McpCatalog", "name", mcpCatalog.Name, "namespace", mcpCatalog.Namespace)
+		r.setReadyCondition(mcpCatalog, metav1.ConditionTrue, mcpv1alpha1.ConditionReasonValidationSucceeded, mcpv1alpha1.ValidationMessageSuccess)
+	}
+
+	// Update the status
+	if err := r.Client.Status().Update(ctx, mcpCatalog); err != nil {
+		log.Error(err, "Failed to update McpCatalog status")
+		return ctrl.Result{}, err
+	}
+
+	// TODO(user): Add your reconciliation logic here
+	// For example, you might want to:
+	// - Create or update related resources
+	// - Handle finalizers
 
 	return ctrl.Result{}, nil
+}
+
+// validateMcpCatalog validates the McpCatalog spec and returns a descriptive error if validation fails
+func (r *McpCatalogReconciler) validateMcpCatalog(mcpCatalog *mcpv1alpha1.McpCatalog) error {
+	var validationErrors []string
+
+	// Check if description is empty or null
+	if strings.TrimSpace(mcpCatalog.Spec.Description) == "" {
+		validationErrors = append(validationErrors, mcpv1alpha1.ValidationMessageDescriptionRequired)
+	}
+
+	// Check if imageRegistry is empty or null
+	if strings.TrimSpace(mcpCatalog.Spec.ImageRegistry) == "" {
+		validationErrors = append(validationErrors, mcpv1alpha1.ValidationMessageImageRegistryRequired)
+	}
+
+	// If there are validation errors, return a descriptive error
+	if len(validationErrors) > 0 {
+		return fmt.Errorf("McpCatalog validation failed for %s/%s: %s",
+			mcpCatalog.Namespace, mcpCatalog.Name, strings.Join(validationErrors, "; "))
+	}
+
+	return nil
+}
+
+// setReadyCondition sets the Ready condition on the McpCatalog
+func (r *McpCatalogReconciler) setReadyCondition(mcpCatalog *mcpv1alpha1.McpCatalog, status metav1.ConditionStatus, reason, message string) {
+	now := metav1.NewTime(time.Now())
+
+	readyCondition := metav1.Condition{
+		Type:               mcpv1alpha1.ConditionTypeReady,
+		Status:             status,
+		Reason:             reason,
+		Message:            message,
+		LastTransitionTime: now,
+		ObservedGeneration: mcpCatalog.Generation,
+	}
+
+	// Update or add the condition
+	meta.SetStatusCondition(&mcpCatalog.Status.Conditions, readyCondition)
 }
 
 // SetupWithManager sets up the controller with the Manager.
