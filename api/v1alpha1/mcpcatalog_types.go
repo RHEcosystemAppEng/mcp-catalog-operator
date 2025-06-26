@@ -20,28 +20,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// Condition types
-const (
-	// ConditionTypeReady represents the Ready condition type
-	ConditionTypeReady = "Ready"
-)
-
-// Condition reasons
-const (
-	// ConditionReasonValidationSucceeded represents successful validation
-	ConditionReasonValidationSucceeded = "ValidationSucceeded"
-	// ConditionReasonValidationFailed represents failed validation
-	ConditionReasonValidationFailed = "ValidationFailed"
-)
-
 // Validation messages
 const (
-	// ValidationMessageDescriptionRequired represents the error message for missing description
-	ValidationMessageDescriptionRequired = "description field is required and cannot be empty or null"
-	// ValidationMessageImageRegistryRequired represents the error message for missing imageRegistry
+	ValidationMessageDescriptionRequired   = "description field is required and cannot be empty or null"
 	ValidationMessageImageRegistryRequired = "imageRegistry field is required and cannot be empty or null"
-	// ValidationMessageSuccess represents the success message for valid spec
-	ValidationMessageSuccess = "McpCatalog spec is valid"
+	ValidationMessageCatalogSuccess        = "McpCatalog spec is valid"
 )
 
 type CatalogRef struct {
