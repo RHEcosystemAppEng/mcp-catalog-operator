@@ -7,4 +7,4 @@ metadata:
   name: red-hat-ecosystem-mcp-catalog
 spec:
   description: Red Hat Ecosystem MCP Catalog
-  registry: https://quay.io/repository/ecosystem-appeng/mcp-catalog
+  imageRegistry: https://quay.io/repository/ecosystem-appeng/mcp-catalog

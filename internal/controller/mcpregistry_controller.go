@@ -78,7 +78,7 @@ func (r *McpRegistryReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		if apierrors.IsAlreadyExists(err) {
 			fmt.Printf("ServiceAccount %q already exists\n", saName)
 		} else {
-			return ctrl.Result{}, fmt.Errorf("Error creating ServiceAccount: %w", err)
+			return ctrl.Result{}, fmt.Errorf("error creating ServiceAccount: %w", err)
 		}
 	} else {
 		fmt.Printf("ServiceAccount %q created in namespace %q\n", saName, mcpRegistry.Namespace)
