@@ -82,17 +82,16 @@ var _ = Describe("McpCatalog Controller", func() {
 			})
 			Expect(err).NotTo(HaveOccurred())
 
-			// Wait a bit for the status to be updated
-			time.Sleep(100 * time.Millisecond)
-
-			// Fetch the updated resource to check the status
-			updatedCatalog := &mcpv1alpha1.McpCatalog{}
-			err = k8sClient.Get(ctx, typeNamespacedName, updatedCatalog)
-			Expect(err).NotTo(HaveOccurred())
+			// Wait for the status to be updated
+			Eventually(func() *metav1.Condition {
+				updatedCatalog := &mcpv1alpha1.McpCatalog{}
+				err := k8sClient.Get(ctx, typeNamespacedName, updatedCatalog)
+				Expect(err).NotTo(HaveOccurred())
+				return meta.FindStatusCondition(updatedCatalog.Status.Conditions, mcpv1alpha1.ConditionTypeReady)
+			}, 5*time.Second, 100*time.Millisecond).ShouldNot(BeNil())
 
 			// Check that the Ready condition is set to True
 			readyCondition := meta.FindStatusCondition(updatedCatalog.Status.Conditions, mcpv1alpha1.ConditionTypeReady)
-			Expect(readyCondition).NotTo(BeNil())
 			Expect(readyCondition.Status).To(Equal(metav1.ConditionTrue))
 			Expect(readyCondition.Reason).To(Equal(mcpv1alpha1.ConditionReasonValidationSucceeded))
 			Expect(readyCondition.Message).To(Equal(mcpv1alpha1.ValidationMessageSuccess))
