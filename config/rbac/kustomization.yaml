@@ -1,5 +1,7 @@
 resources:
 - role.yaml
+- service_account.yaml
+- role_binding.yaml
 # [WEBHOOK] To enable webhook, uncomment the following line
 #- role_binding.yaml
 # Uncomment the following line to add leader election permissions
@@ -16,11 +18,23 @@ resources:
 - mcpcatalog_admin_role.yaml
 - mcpcatalog_editor_role.yaml
 - mcpcatalog_viewer_role.yaml
+- mcpcertifiedserver_admin_role.yaml
+- mcpcertifiedserver_editor_role.yaml
+- mcpcertifiedserver_viewer_role.yaml
+- mcpregistry_admin_role.yaml
+- mcpregistry_editor_role.yaml
+- mcpregistry_viewer_role.yaml
+- mcpserver_admin_role.yaml
+- mcpserver_editor_role.yaml
+- mcpserver_viewer_role.yaml
 - mcpservercertjob_admin_role.yaml
 - mcpservercertjob_editor_role.yaml
 - mcpservercertjob_viewer_role.yaml
 - mcpserverimportjob_admin_role.yaml
 - mcpserverimportjob_editor_role.yaml
 - mcpserverimportjob_viewer_role.yaml
+- mcpserverrun_admin_role.yaml
+- mcpserverrun_editor_role.yaml
+- mcpserverrun_viewer_role.yaml
 
 

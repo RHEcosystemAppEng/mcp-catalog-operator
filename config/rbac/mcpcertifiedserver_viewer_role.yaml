@@ -1,0 +1,14 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: mcpcertifiedserver-viewer-role
+rules:
+- apiGroups:
+  - mcp.opendatahub.io
+  resources:
+  - mcpcertifiedservers
+  verbs:
+  - get
+  - list
+  - watch 

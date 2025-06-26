@@ -1,0 +1,14 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: mcpregistry-viewer-role
+rules:
+- apiGroups:
+  - mcp.opendatahub.io
+  resources:
+  - mcpregistries
+  verbs:
+  - get
+  - list
+  - watch 
