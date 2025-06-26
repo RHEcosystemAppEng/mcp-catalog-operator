@@ -1,0 +1,11 @@
+apiVersion: mcp.opendatahub.io/v1alpha1
+kind: McpRegistry
+metadata:
+  labels:
+    app.kubernetes.io/name: mcp-registry-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: mcp-registry
+spec:
+  catalogs:
+    - name: red-hat-ecosystem-mcp-catalog
+  description: MCP registry for the tenant

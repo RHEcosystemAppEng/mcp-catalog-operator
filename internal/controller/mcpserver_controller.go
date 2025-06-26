@@ -18,21 +18,13 @@ package controller
 
 import (
 	"context"
-	"fmt"
-	"strings"
 
-	appsv1 "k8s.io/api/apps/v1"
-	corev1 "k8s.io/api/core/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/apimachinery/pkg/util/intstr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
-	mcpv1 "github.com/dmartinol/mcp-catalog-operator/api/v1"
+	mcpv1alpha1 "github.com/RHEcosystemAppEng/mcp-registry-operator/api/v1alpha1"
 )
 
 // McpServerReconciler reconciles a McpServer object
@@ -55,224 +47,17 @@ type McpServerReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.20.4/pkg/reconcile
 func (r *McpServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	var mcpServer mcpv1.McpServer
-	if err := r.Get(ctx, req.NamespacedName, &mcpServer); err != nil {
-		return ctrl.Result{}, client.IgnoreNotFound(err)
-	}
+	_ = logf.FromContext(ctx)
 
-	registryRef := mcpServer.Spec.RegistryRef
-	if registryRef.Name == "" {
-		return ctrl.Result{}, fmt.Errorf("invalid registry-ref: name missing")
-	}
+	// TODO(user): your logic here
 
-	authConfig := mcpServer.Spec.McpServer.Auth
-	if authConfig == nil {
-		authConfig = &mcpv1.AuthConfig{Enabled: true}
-		mcpServer.Spec.McpServer.Auth = authConfig
-		fmt.Printf("Initialized auth to %v", authConfig)
-	}
-
-	var registry mcpv1.McpRegistry
-	registryNs := mcpServer.Namespace
-	if registryRef.Namespace != nil {
-		registryNs = *registryRef.Namespace
-	}
-	fmt.Printf("Looking for McpRegistry %s in %s", registryRef.Name, registryNs)
-	if err := r.Get(ctx, types.NamespacedName{Name: registryRef.Name, Namespace: registryNs}, &registry); err != nil {
-		return ctrl.Result{}, fmt.Errorf("failed to get referenced McpRegistry: %w", err)
-	}
-
-	// Set McpRegistry as owner of McpServer
-	if err := controllerutil.SetControllerReference(&registry, &mcpServer, r.Scheme); err != nil {
-		return ctrl.Result{}, fmt.Errorf("failed to set owner reference: %w", err)
-	}
-
-	// Persist change if necessary
-	if err := r.Update(ctx, &mcpServer); err != nil {
-		return ctrl.Result{}, fmt.Errorf("failed to update McpServer with owner ref: %w", err)
-	}
-
-	err := r.createDeployment(ctx, mcpServer)
-	if err != nil {
-		return ctrl.Result{}, err
-	}
-	err = r.createService(ctx, mcpServer)
-	if err != nil {
-		return ctrl.Result{}, err
-	}
-
-	// Continue with normal reconcile logic...
 	return ctrl.Result{}, nil
-}
-
-func (r *McpServerReconciler) analyzeContainer(ctx context.Context, mcpServer mcpv1.McpServer) (string, string, []string, error) {
-	var serverImage string
-	var command string
-	args := mcpServer.Spec.McpServer.Args
-
-	// Get blueprint-ref from spec
-	if mcpServer.Spec.ServerMode == "blueprint" {
-		fmt.Printf("mcpServer.Spec is %+v\n", mcpServer.Spec)
-		ref := mcpServer.Spec.McpServer.BlueprintRef
-		if ref.Name == "" {
-			return "", "", []string{}, fmt.Errorf("invalid blueprint-ref: name missing")
-		}
-
-		var blueprint mcpv1.McpBlueprint
-		ns := mcpServer.Namespace
-		if ref.Namespace != nil {
-			ns = *ref.Namespace
-		}
-		fmt.Printf("Looking for McpBlueprint %s in %s", ref.Name, ns)
-		if err := r.Get(ctx, types.NamespacedName{Name: ref.Name, Namespace: ns}, &blueprint); err != nil {
-			return "", "", []string{}, fmt.Errorf("failed to get referenced McpBlueprint: %w", err)
-		}
-
-		serverImage = blueprint.Spec.McpServer.Image
-		command = blueprint.Spec.McpServer.Command
-		args = append(args, blueprint.Spec.McpServer.Args...)
-	}
-
-	if mcpServer.Spec.ServerMode == "container" {
-		serverImage = mcpServer.Spec.McpServer.ServerImage
-	}
-
-	return serverImage, command, args, nil
-}
-
-func (r *McpServerReconciler) createDeployment(ctx context.Context, mcpServer mcpv1.McpServer) error {
-	serverImage, command, args, err := r.analyzeContainer(ctx, mcpServer)
-	if err != nil {
-		return err
-	}
-
-	deployName := mcpServer.Name + "-deployment"
-	deployNamespace := mcpServer.Namespace
-
-	var deploy appsv1.Deployment
-	err = r.Get(ctx, types.NamespacedName{Name: deployName, Namespace: deployNamespace}, &deploy)
-	if err == nil {
-		return nil
-	}
-	if !apierrors.IsNotFound(err) {
-		return err
-	}
-
-	// 4. Create a new Deployment
-	labels := map[string]string{
-		"app": mcpServer.Name,
-	}
-
-	replicas := int32(1)
-	if mcpServer.Spec.Replicas != nil {
-		replicas = *mcpServer.Spec.Replicas
-	}
-
-	if mcpServer.Spec.McpServer.Proxy != nil && *mcpServer.Spec.McpServer.Proxy {
-		// TODO Have supergateway already in the base image
-		args = []string{"-y", "supergateway", "--stdio", fmt.Sprintf("%s %s", command, strings.Join(args, " "))}
-		command = "npx"
-	}
-
-	containers := []corev1.Container{
-		{
-			Name:    "mcp-server",
-			Image:   serverImage,
-			Args:    args,
-			EnvFrom: mcpServer.Spec.EnvFrom,
-			Command: []string{command},
-		},
-	}
-	// if mcpServer.Spec.McpServer.Proxy != nil && *mcpServer.Spec.McpServer.Proxy {
-	// 	containers = append(containers, corev1.Container{
-	// 		Name:  "mcp-proxy",
-	// 		Image: "quay.io/dmartino/mcp-proxy:amd64",
-	// 		// Args:  []string{"--sse-port", "8000", "http://0.0.0.0:8080/sse"},
-	// 		Args: []string{"--sse-port", "8000"},
-	// 		Ports: []corev1.ContainerPort{
-	// 			{ContainerPort: 8000},
-	// 		},
-	// 	})
-	// }
-
-	deploy = appsv1.Deployment{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      deployName,
-			Namespace: deployNamespace,
-			Labels:    labels,
-		},
-		Spec: appsv1.DeploymentSpec{
-			Replicas: &replicas,
-			Selector: &metav1.LabelSelector{
-				MatchLabels: labels,
-			},
-			Template: corev1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels: labels,
-				},
-				Spec: corev1.PodSpec{
-					Containers: containers,
-				},
-			},
-		},
-	}
-
-	if err := controllerutil.SetControllerReference(&mcpServer, &deploy, r.Scheme); err != nil {
-		return fmt.Errorf("failed to set owner reference on deployment: %w", err)
-	}
-	if err := r.Create(ctx, &deploy); err != nil {
-		if apierrors.IsAlreadyExists(err) {
-			fmt.Printf("deployment %q already exists\n", deployName)
-		} else {
-			return fmt.Errorf("failed to create deployment: %w", err)
-		}
-	}
-	return nil
-}
-
-func (r *McpServerReconciler) createService(ctx context.Context, mcpServer mcpv1.McpServer) error {
-	serviceName := mcpServer.Name
-	serviceNamespace := mcpServer.Namespace
-	labels := map[string]string{
-		"app": mcpServer.Name,
-	}
-	service := corev1.Service{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      serviceName,
-			Namespace: serviceNamespace,
-			Labels:    labels,
-		},
-		Spec: corev1.ServiceSpec{
-			Selector: map[string]string{"app": mcpServer.Name},
-			Ports: []corev1.ServicePort{
-				{
-					Name:       "http",
-					Protocol:   "TCP",
-					Port:       8000,
-					TargetPort: intstr.FromInt(8000),
-				},
-			},
-			Type: corev1.ServiceTypeClusterIP,
-		},
-	}
-
-	if err := controllerutil.SetControllerReference(&mcpServer, &service, r.Scheme); err != nil {
-		return fmt.Errorf("failed to set owner reference on service: %w", err)
-	}
-	if err := r.Create(ctx, &service); err != nil {
-		if apierrors.IsAlreadyExists(err) {
-			fmt.Printf("service %q already exists\n", serviceName)
-		} else {
-			return fmt.Errorf("failed to create service: %w", err)
-		}
-	}
-	return nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *McpServerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&mcpv1.McpServer{}).
+		For(&mcpv1alpha1.McpServer{}).
 		Named("mcpserver").
 		Complete(r)
 }

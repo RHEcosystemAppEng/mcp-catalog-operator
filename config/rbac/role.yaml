@@ -5,12 +5,39 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
+  - ""
+  resources:
+  - serviceaccounts
+  - services
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
   - mcp.opendatahub.io
   resources:
-  - mcpblueprints
   - mcpcatalogs
+  - mcpcertifiedservers
   - mcpregistries
-  - mcpserverdefinitions
+  - mcpservercertjobs
+  - mcpserverimportjobs
+  - mcpserverruns
   - mcpservers
   verbs:
   - create
@@ -23,22 +50,39 @@ rules:
 - apiGroups:
   - mcp.opendatahub.io
   resources:
-  - mcpblueprints/finalizers
   - mcpcatalogs/finalizers
+  - mcpcertifiedservers/finalizers
   - mcpregistries/finalizers
-  - mcpserverdefinitions/finalizers
+  - mcpservercertjobs/finalizers
+  - mcpserverimportjobs/finalizers
+  - mcpserverruns/finalizers
   - mcpservers/finalizers
   verbs:
   - update
 - apiGroups:
   - mcp.opendatahub.io
   resources:
-  - mcpblueprints/status
   - mcpcatalogs/status
+  - mcpcertifiedservers/status
   - mcpregistries/status
-  - mcpserverdefinitions/status
+  - mcpservercertjobs/status
+  - mcpserverimportjobs/status
+  - mcpserverruns/status
   - mcpservers/status
   verbs:
   - get
   - patch
   - update
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - rolebindings
+  - roles
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch

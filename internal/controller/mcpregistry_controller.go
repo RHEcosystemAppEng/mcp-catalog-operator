@@ -20,16 +20,18 @@ import (
 	"context"
 	"fmt"
 
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
-	mcpv1 "github.com/dmartinol/mcp-catalog-operator/api/v1"
+	mcpv1alpha1 "github.com/RHEcosystemAppEng/mcp-registry-operator/api/v1alpha1"
 )
 
 // McpRegistryReconciler reconciles a McpRegistry object
@@ -41,6 +43,11 @@ type McpRegistryReconciler struct {
 // +kubebuilder:rbac:groups=mcp.opendatahub.io,resources=mcpregistries,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=mcp.opendatahub.io,resources=mcpregistries/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=mcp.opendatahub.io,resources=mcpregistries/finalizers,verbs=update
+// +kubebuilder:rbac:groups="",resources=serviceaccounts,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups="apps",resources=deployments,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups="",resources=services,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups="rbac.authorization.k8s.io",resources=roles,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups="rbac.authorization.k8s.io",resources=rolebindings,verbs=get;list;watch;create;update;patch;delete
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -52,35 +59,18 @@ type McpRegistryReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.20.4/pkg/reconcile
 func (r *McpRegistryReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	var mcpRegistry mcpv1.McpRegistry
+	var mcpRegistry mcpv1alpha1.McpRegistry
 	if err := r.Get(ctx, req.NamespacedName, &mcpRegistry); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	err := r.createClientServiceAccount(ctx, mcpRegistry)
-	if err != nil {
-		return ctrl.Result{}, err
-	}
-	err = r.createClientRole(ctx, mcpRegistry)
-	if err != nil {
-		return ctrl.Result{}, err
-	}
-	err = r.createClientRoleBinding(ctx, mcpRegistry)
-	if err != nil {
-		return ctrl.Result{}, err
-	}
-
-	return ctrl.Result{}, nil
-}
-func (r *McpRegistryReconciler) createClientServiceAccount(ctx context.Context, mcpRegistry mcpv1.McpRegistry) error {
 	registryName := mcpRegistry.Name
-	saName := fmt.Sprintf("%s-client", registryName)
-	namespace := mcpRegistry.Namespace
+	saName := mcpRegistry.Name
 
 	sa := corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      saName,
-			Namespace: namespace,
+			Namespace: mcpRegistry.Namespace,
 		},
 	}
 
@@ -88,94 +78,158 @@ func (r *McpRegistryReconciler) createClientServiceAccount(ctx context.Context, 
 		if apierrors.IsAlreadyExists(err) {
 			fmt.Printf("ServiceAccount %q already exists\n", saName)
 		} else {
-			return fmt.Errorf("error creating ServiceAccount: %w", err)
+			return ctrl.Result{}, fmt.Errorf("Error creating ServiceAccount: %w", err)
 		}
 	} else {
-		fmt.Printf("ServiceAccount %q created in namespace %q\n", saName, namespace)
+		fmt.Printf("ServiceAccount %q created in namespace %q\n", saName, mcpRegistry.Namespace)
 	}
 	if err := controllerutil.SetControllerReference(&mcpRegistry, &sa, r.Scheme); err != nil {
-		return fmt.Errorf("failed to set owner reference on ServiceAccount: %w", err)
+		return ctrl.Result{}, fmt.Errorf("failed to set owner reference on ServiceAccount: %w", err)
 	}
-	return nil
-}
 
-func (r *McpRegistryReconciler) createClientRole(ctx context.Context, mcpRegistry mcpv1.McpRegistry) error {
-	registryName := mcpRegistry.Name
-	namespace := mcpRegistry.Namespace
-	roleName := fmt.Sprintf("%s-client", registryName)
+	// TODO: we really need these? Use K8S API Job instead and remove this code
+	for _, role := range []string{
+		"mcpregistry-admin-role",
+		"mcpserver-admin-role",
+		"mcpcertifiedserver-admin-role",
+		"pipeline-as-code-controller-clusterrole"} {
+		crbName := fmt.Sprintf("%s-is-%s", saName, role)
+		crb := rbacv1.RoleBinding{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      crbName,
+				Namespace: mcpRegistry.Namespace,
+			},
+			Subjects: []rbacv1.Subject{
+				{
+					Kind:      rbacv1.ServiceAccountKind,
+					Name:      saName,
+					Namespace: mcpRegistry.Namespace,
+				},
+			},
+			RoleRef: rbacv1.RoleRef{
+				APIGroup: rbacv1.GroupName,
+				Kind:     "ClusterRole",
+				Name:     role,
+			},
+		}
+		if err := r.Create(ctx, &crb); err != nil {
+			if apierrors.IsAlreadyExists(err) {
+				fmt.Printf("ClusterRoleBinding %q already exists\n", crbName)
+			} else {
+				return ctrl.Result{}, fmt.Errorf("failed creating ClusterRoleBinding: %w", err)
+			}
+		} else {
+			fmt.Printf("ClusterRoleBinding %q created in namespace %q\n", crbName, mcpRegistry.Namespace)
+		}
+		if err := controllerutil.SetControllerReference(&mcpRegistry, &crb, r.Scheme); err != nil {
+			return ctrl.Result{}, fmt.Errorf("failed to set owner reference on ClusterRoleBinding: %w", err)
+		}
+	}
 
-	role := &rbacv1.Role{
+	deployName := registryName
+	labels := map[string]string{
+		"app": registryName,
+	}
+	replicas := int32(1)
+
+	deploy := appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      roleName,
-			Namespace: namespace,
+			Name:      deployName,
+			Namespace: mcpRegistry.Namespace,
+			Labels:    labels,
 		},
-		Rules: []rbacv1.PolicyRule{
-			{
-				APIGroups:     []string{""},
-				Resources:     []string{"mcpregistries"},
-				Verbs:         []string{"get"},
-				ResourceNames: []string{registryName},
+		Spec: appsv1.DeploymentSpec{
+			Replicas: &replicas,
+			Selector: &metav1.LabelSelector{
+				MatchLabels: labels,
+			},
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: labels,
+				},
+				Spec: corev1.PodSpec{
+					ServiceAccountName: saName,
+					Containers: []corev1.Container{
+						{
+							Name:            "mcp-registry",
+							Image:           "quay.io/ecosystem-appeng/mcp-registry:amd64-0.1",
+							ImagePullPolicy: corev1.PullAlways,
+							Ports: []corev1.ContainerPort{
+								{
+									Name:          "http",
+									ContainerPort: 8000,
+									Protocol:      corev1.ProtocolTCP,
+								},
+							},
+							Env: []corev1.EnvVar{
+								{
+									Name:  "MCP_REGISTRY_NAME",
+									Value: registryName,
+								},
+								{
+									Name:  "MCP_SERVERPOOL_NAME",
+									Value: "foo",
+								},
+							},
+						},
+					},
+				},
 			},
 		},
 	}
-	if err := r.Create(ctx, role); err != nil {
+
+	if err := controllerutil.SetControllerReference(&mcpRegistry, &deploy, r.Scheme); err != nil {
+		return ctrl.Result{}, fmt.Errorf("failed to set owner reference on deployment: %w", err)
+	}
+	if err := r.Create(ctx, &deploy); err != nil {
 		if apierrors.IsAlreadyExists(err) {
-			fmt.Printf("Role %q already exists\n", roleName)
+			fmt.Printf("deployment %q already exists\n", deployName)
 		} else {
-			return fmt.Errorf("error creating Role: %w", err)
+			return ctrl.Result{}, fmt.Errorf("failed to create deployment: %w", err)
 		}
-	} else {
-		fmt.Printf("Role %q created in namespace %q\n", roleName, namespace)
 	}
-	if err := controllerutil.SetControllerReference(&mcpRegistry, role, r.Scheme); err != nil {
-		return fmt.Errorf("failed to set owner reference on Role: %w", err)
-	}
-	return nil
-}
 
-func (r *McpRegistryReconciler) createClientRoleBinding(ctx context.Context, mcpRegistry mcpv1.McpRegistry) error {
-	registryName := mcpRegistry.Name
-	saName := fmt.Sprintf("%s-client", registryName)
-	roleName := fmt.Sprintf("%s-client", registryName)
-	namespace := mcpRegistry.Namespace
-
-	roleBinding := &rbacv1.RoleBinding{
+	serviceName := mcpRegistry.Name + "-svc"
+	serviceNamespace := mcpRegistry.Namespace
+	service := corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%s-client-can-use-access-token", registryName),
-			Namespace: namespace,
+			Name:      serviceName,
+			Namespace: serviceNamespace,
+			Labels:    labels,
 		},
-		Subjects: []rbacv1.Subject{
-			{
-				Kind:      "ServiceAccount",
-				Name:      saName,
-				Namespace: namespace,
+		Spec: corev1.ServiceSpec{
+			Selector: map[string]string{"app": mcpRegistry.Name},
+			Ports: []corev1.ServicePort{
+				{
+					Name:       "http",
+					Protocol:   "TCP",
+					Port:       8000,
+					TargetPort: intstr.FromInt(8000),
+				},
 			},
-		},
-		RoleRef: rbacv1.RoleRef{
-			APIGroup: "rbac.authorization.k8s.io",
-			Kind:     "Role",
-			Name:     roleName,
+			Type: corev1.ServiceTypeClusterIP,
 		},
 	}
-	if err := r.Create(ctx, roleBinding); err != nil {
+
+	if err := controllerutil.SetControllerReference(&mcpRegistry, &service, r.Scheme); err != nil {
+		return ctrl.Result{}, fmt.Errorf("failed to set owner reference on service: %w", err)
+	}
+	if err := r.Create(ctx, &service); err != nil {
 		if apierrors.IsAlreadyExists(err) {
-			fmt.Printf("RoleBinding %q already exists\n", roleBinding.Name)
+			fmt.Printf("service %q already exists\n", serviceName)
 		} else {
-			return fmt.Errorf("error creating RoleBinding: %w", err)
+			return ctrl.Result{}, fmt.Errorf("failed to create service: %w", err)
 		}
-	} else {
-		fmt.Printf("RoleBinding %q created in namespace %q\n", roleBinding.Name, namespace)
 	}
-	if err := controllerutil.SetControllerReference(&mcpRegistry, roleBinding, r.Scheme); err != nil {
-		return fmt.Errorf("failed to set owner reference on RoleBinding: %w", err)
-	}
-	return nil
+
+	// Continue with normal reconcile logic...
+	return ctrl.Result{}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *McpRegistryReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&mcpv1.McpRegistry{}).
+		For(&mcpv1alpha1.McpRegistry{}).
 		Named("mcpregistry").
 		Complete(r)
 }

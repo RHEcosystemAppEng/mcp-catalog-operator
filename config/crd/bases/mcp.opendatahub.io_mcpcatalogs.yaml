@@ -14,7 +14,7 @@ spec:
     singular: mcpcatalog
   scope: Namespaced
   versions:
-  - name: v1
+  - name: v1alpha1
     schema:
       openAPIV3Schema:
         description: McpCatalog is the Schema for the mcpcatalogs API.
@@ -41,8 +41,8 @@ spec:
             properties:
               description:
                 type: string
-            required:
-            - description
+              imageRegistry:
+                type: string
             type: object
           status:
             description: McpCatalogStatus defines the observed state of McpCatalog.

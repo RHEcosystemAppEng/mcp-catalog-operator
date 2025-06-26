@@ -1,4 +1,4 @@
-module github.com/dmartinol/mcp-catalog-operator
+module github.com/RHEcosystemAppEng/mcp-registry-operator
 
 go 1.23.0
 

@@ -1,0 +1,10 @@
+apiVersion: mcp.opendatahub.io/v1alpha1
+kind: McpServerCertJob
+metadata:
+  labels:
+    app.kubernetes.io/name: mcp-registry-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: mcpservercertjob-sample
+spec:
+  serverRef:
+    name: uns-mcp

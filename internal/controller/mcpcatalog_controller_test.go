@@ -27,7 +27,7 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	mcpv1 "github.com/dmartinol/mcp-catalog-operator/api/v1"
+	mcpv1alpha1 "github.com/RHEcosystemAppEng/mcp-registry-operator/api/v1alpha1"
 )
 
 var _ = Describe("McpCatalog Controller", func() {
@@ -40,13 +40,13 @@ var _ = Describe("McpCatalog Controller", func() {
 			Name:      resourceName,
 			Namespace: "default", // TODO(user):Modify as needed
 		}
-		mcpcatalog := &mcpv1.McpCatalog{}
+		mcpcatalog := &mcpv1alpha1.McpCatalog{}
 
 		BeforeEach(func() {
 			By("creating the custom resource for the Kind McpCatalog")
 			err := k8sClient.Get(ctx, typeNamespacedName, mcpcatalog)
 			if err != nil && errors.IsNotFound(err) {
-				resource := &mcpv1.McpCatalog{
+				resource := &mcpv1alpha1.McpCatalog{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      resourceName,
 						Namespace: "default",
@@ -59,7 +59,7 @@ var _ = Describe("McpCatalog Controller", func() {
 
 		AfterEach(func() {
 			// TODO(user): Cleanup logic after each test, like removing the resource instance.
-			resource := &mcpv1.McpCatalog{}
+			resource := &mcpv1alpha1.McpCatalog{}
 			err := k8sClient.Get(ctx, typeNamespacedName, resource)
 			Expect(err).NotTo(HaveOccurred())
 

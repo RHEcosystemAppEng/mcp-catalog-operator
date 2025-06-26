@@ -1,0 +1,52 @@
+apiVersion: mcp.opendatahub.io/v1alpha1
+kind: McpServerRun
+metadata:
+  labels:
+    app.kubernetes.io/name: mcp-registry-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: local-kubernetes-mcpserver
+spec:
+  registryRef:
+    name: mcp-registry
+  replicas: 1
+  server-mode: blueprint
+  mcpServer:
+    guardian: false
+    mcpServerRef:
+      name: kubernetes-mcpserver
+---
+apiVersion: mcp.opendatahub.io/v1alpha1
+kind: McpServerRun
+metadata:
+  labels:
+    app.kubernetes.io/name: mcp-registry-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: ext-git-server
+spec:
+  registryRef:
+    name: mcp-registry
+  replicas: 1
+  server-mode: remote
+  mcpServer:
+    guardian: true
+    server-uri: https://my-git-server:8000/sse
+---
+apiVersion: mcp.opendatahub.io/v1alpha1
+kind: McpServerRun
+metadata:
+  labels:
+    app.kubernetes.io/name: mcp-registry-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: ext-mcpserver
+spec:
+  registryRef:
+    name: mcp-registry
+  replicas: 1
+  envFrom:
+    - secretRef:
+        name: mcp-slack-secret
+  server-mode: container
+  mcpServer:
+    guardian: false
+    proxy: false
+    server-image: mcp/slack

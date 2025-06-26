@@ -1,9 +1,10 @@
 ## Append samples of your project ##
 resources:
-- mcp_v1_mcpcatalog.yaml
-- mcp_v1_mcpblueprint.yaml
-- mcp_v1_mcpserver.yaml
-# - deployments.yaml
-- mcp_v1_mcpregistry.yaml
-- mcp_v1_mcpserverdefinition.yaml
+- mcp_v1alpha1_mcpcatalog.yaml
+- mcp_v1alpha1_mcpserver.yaml
+- mcp_v1alpha1_mcpcertifiedserver.yaml
+- mcp_v1alpha1_mcpserverimportjob.yaml
+- mcp_v1alpha1_mcpservercertjob.yaml
+- mcp_v1alpha1_mcpregistry.yaml
+- mcp_v1alpha1_mcpserverrun.yaml
 # +kubebuilder:scaffold:manifestskustomizesamples

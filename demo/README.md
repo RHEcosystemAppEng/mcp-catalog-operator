@@ -61,13 +61,18 @@ MCP_REGISTRY=$(oc get route -n mcp-registry-ref mcp-registry-route -oyaml | yq '
 
 Verify the CRs:
 ```
-oc get mcpserverdefinitions -n mcp-catalog | wc -l
+oc get mcpservers -n mcp-catalog | wc -l
 ```
 
 ## [Admin] Promote selected instance(s) to blueprint
+Expose the registry service port:
+```
+oc port-forward svc/red-hat-ecosystem-mcp-catalog-svc 8000:8000
+```
+
 Select one server definition and promote it:
 ```
-SERVER_NAME="$(oc get mcpserverdefinitions -n mcp-catalog | grep tavily-mcp | head -1 | cut -d ' ' -f 1)" \
+SERVER_NAME="$(oc get mcpservers -n mcp-catalog | grep tavily-mcp | head -1 | cut -d ' ' -f 1)" \
   && echo "$SERVER_NAME" \
   && curl -X POST "localhost:8000/promote?server_definition_name=$SERVER_NAME"
 ```
