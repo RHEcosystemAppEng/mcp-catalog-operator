@@ -99,7 +99,7 @@ metadata:
     mcp.opendatahub.io/image-provider: Red Hat
     mcp.opendatahub.io/homepage: https://github.com/cloudflare/mcp-server-cloudflare
     mcp.opendatahub.io/license: Apache-2.0
-    mcp.opendatahub.io/competencies: ['cloudfare']
+    mcp.opendatahub.io/competencies: ['cloudflare']
   name: cloudflare-mcp-server
 spec:
   mcpServer:
