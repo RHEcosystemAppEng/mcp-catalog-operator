@@ -40,21 +40,10 @@ spec:
           spec:
             description: McpServerImportJobSpec defines the desired state of McpServerImportJob.
             properties:
-              catalogRef:
-                description: Reference to the MCP Catalog to import the servers into
-                properties:
-                  name:
-                    type: string
-                  namespace:
-                    type: string
-                required:
-                - name
-                type: object
               registryUri:
                 description: Reference to the MCP Registry to import the servers from
                 type: string
             required:
-            - catalogRef
             - registryUri
             type: object
           status:

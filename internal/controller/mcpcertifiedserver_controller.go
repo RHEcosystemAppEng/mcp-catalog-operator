@@ -21,7 +21,6 @@ import (
 	"fmt"
 
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -57,23 +56,15 @@ func (r *McpCertifiedServerReconciler) Reconcile(ctx context.Context, req ctrl.R
 	if err := r.Get(ctx, req.NamespacedName, &mcpCertifiedServer); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
-	ref := mcpCertifiedServer.Spec.CatalogRef
-	if ref.Name == "" {
-		return ctrl.Result{}, fmt.Errorf("invalid catalogRef: name missing")
-	}
 
-	var mcpCatalog mcpv1alpha1.McpCatalog
-	ns := mcpCertifiedServer.Namespace
-	if ref.Namespace != nil {
-		ns = *ref.Namespace
-	}
-	fmt.Printf("Looking for McpCatalog %s in %s", ref.Name, ns)
-	if err := r.Get(ctx, types.NamespacedName{Name: ref.Name, Namespace: ns}, &mcpCatalog); err != nil {
-		return ctrl.Result{}, fmt.Errorf("failed to get referenced McpCatalog: %w", err)
+	// Get McpCatalog using annotations
+	mcpCatalog, err := GetMcpCatalogFromAnnotations(ctx, r.Client, &mcpCertifiedServer)
+	if err != nil {
+		return ctrl.Result{}, fmt.Errorf("failed to get McpCatalog from annotations: %w", err)
 	}
 
 	// Set McpCatalog as owner of McpCertifiedServer
-	if err := controllerutil.SetControllerReference(&mcpCatalog, &mcpCertifiedServer, r.Scheme); err != nil {
+	if err := controllerutil.SetControllerReference(mcpCatalog, &mcpCertifiedServer, r.Scheme); err != nil {
 		return ctrl.Result{}, fmt.Errorf("failed to set owner reference: %w", err)
 	}
 

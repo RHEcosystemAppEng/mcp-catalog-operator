@@ -18,6 +18,7 @@ package controller
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -25,6 +26,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
 	mcpv1alpha1 "github.com/RHEcosystemAppEng/mcp-registry-operator/api/v1alpha1"
@@ -58,42 +60,49 @@ func (r *McpServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	// Determine the namespace to look for the catalog
-	catalogNamespace := mcpServer.Namespace
-	if mcpServer.Spec.CatalogRef.Namespace != nil && *mcpServer.Spec.CatalogRef.Namespace != "" {
-		catalogNamespace = *mcpServer.Spec.CatalogRef.Namespace
-	}
-
-	catalogName := mcpServer.Spec.CatalogRef.Name
-	catalogKey := client.ObjectKey{Name: catalogName, Namespace: catalogNamespace}
-	catalog := &mcpv1alpha1.McpCatalog{}
-	catalogExists := true
-	if err := r.Get(ctx, catalogKey, catalog); err != nil {
-		catalogExists = false
-	}
+	// Get McpCatalog using annotations
+	mcpCatalog, err := GetMcpCatalogFromAnnotations(ctx, r.Client, mcpServer)
+	catalogExists := err == nil
 
 	var readyCondition metav1.Condition
 	now := metav1.NewTime(time.Now())
 	if catalogExists {
-		readyCondition = metav1.Condition{
-			Type:               mcpv1alpha1.ConditionTypeReady,
-			Status:             metav1.ConditionTrue,
-			Reason:             mcpv1alpha1.ConditionReasonValidationSucceeded,
-			Message:            mcpv1alpha1.ValidationMessageServerSuccess,
-			LastTransitionTime: now,
-			ObservedGeneration: mcpServer.Generation,
+		log.Info("Referenced catalog found", "catalog", mcpCatalog.Name, "namespace", mcpCatalog.Namespace)
+		if mcpCatalog.Namespace != mcpServer.Namespace {
+			readyCondition = metav1.Condition{
+				Type:               ConditionTypeReady,
+				Status:             metav1.ConditionFalse,
+				Reason:             ConditionReasonCrossNamespaces,
+				Message:            ValidationMessageCrossNamespaces,
+				LastTransitionTime: now,
+				ObservedGeneration: mcpServer.Generation,
+			}
+		} else {
+			readyCondition = metav1.Condition{
+				Type:               ConditionTypeReady,
+				Status:             metav1.ConditionTrue,
+				Reason:             ConditionReasonValidationSucceeded,
+				Message:            ValidationMessageServerSuccess,
+				LastTransitionTime: now,
+				ObservedGeneration: mcpServer.Generation,
+			}
+			if err := controllerutil.SetControllerReference(mcpCatalog, mcpServer, r.Scheme); err != nil {
+				return ctrl.Result{}, fmt.Errorf("failed to set owner reference: %w", err)
+			}
+			if err := r.Update(ctx, mcpServer); err != nil {
+				return ctrl.Result{}, fmt.Errorf("failed to update McpServer with owner ref: %w", err)
+			}
 		}
-		log.Info("Referenced catalog found", "catalog", catalogName, "namespace", catalogNamespace)
 	} else {
 		readyCondition = metav1.Condition{
-			Type:               mcpv1alpha1.ConditionTypeReady,
+			Type:               ConditionTypeReady,
 			Status:             metav1.ConditionFalse,
-			Reason:             mcpv1alpha1.ConditionReasonValidationFailed,
-			Message:            mcpv1alpha1.ValidationMessageCatalogNotFound,
+			Reason:             ConditionReasonValidationFailed,
+			Message:            ValidationMessageCatalogNotFound,
 			LastTransitionTime: now,
 			ObservedGeneration: mcpServer.Generation,
 		}
-		log.Info("Referenced catalog NOT found", "catalog", catalogName, "namespace", catalogNamespace)
+		log.Info("Referenced catalog NOT found", "error", err)
 	}
 
 	meta.SetStatusCondition(&mcpServer.Status.Conditions, readyCondition)

@@ -20,12 +20,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// Validation messages
-const (
-	ValidationMessageCatalogNotFound = "referenced catalog does not exist"
-	ValidationMessageServerSuccess   = "McpServer spec is valid"
-)
-
 type ServerRef struct {
 	Name      string  `json:"name"`
 	Namespace *string `json:"namespace,omitempty"`
@@ -149,7 +143,6 @@ type ServerDetail struct {
 
 // McpServerSpec defines the desired state of McpServer.
 type McpServerSpec struct {
-	CatalogRef   CatalogRef   `json:"catalogRef,omitempty"`
 	ServerDetail ServerDetail `json:"server_detail"`
 }
 

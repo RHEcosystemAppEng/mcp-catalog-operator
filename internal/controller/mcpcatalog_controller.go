@@ -67,10 +67,10 @@ func (r *McpCatalogReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	// Update status based on validation result
 	if validationErr != nil {
 		log.Error(validationErr, "Validation failed for McpCatalog", "name", mcpCatalog.Name, "namespace", mcpCatalog.Namespace)
-		r.setReadyCondition(mcpCatalog, metav1.ConditionFalse, mcpv1alpha1.ConditionReasonValidationFailed, validationErr.Error())
+		r.setReadyCondition(mcpCatalog, metav1.ConditionFalse, ConditionReasonValidationFailed, validationErr.Error())
 	} else {
 		log.Info("Successfully validated McpCatalog", "name", mcpCatalog.Name, "namespace", mcpCatalog.Namespace)
-		r.setReadyCondition(mcpCatalog, metav1.ConditionTrue, mcpv1alpha1.ConditionReasonValidationSucceeded, mcpv1alpha1.ValidationMessageCatalogSuccess)
+		r.setReadyCondition(mcpCatalog, metav1.ConditionTrue, ConditionReasonValidationSucceeded, ValidationMessageCatalogSuccess)
 	}
 
 	// Update the status
@@ -93,12 +93,12 @@ func (r *McpCatalogReconciler) validateMcpCatalog(mcpCatalog *mcpv1alpha1.McpCat
 
 	// Check if description is empty or null
 	if strings.TrimSpace(mcpCatalog.Spec.Description) == "" {
-		validationErrors = append(validationErrors, mcpv1alpha1.ValidationMessageDescriptionRequired)
+		validationErrors = append(validationErrors, ValidationMessageDescriptionRequired)
 	}
 
 	// Check if imageRegistry is empty or null
 	if strings.TrimSpace(mcpCatalog.Spec.ImageRegistry) == "" {
-		validationErrors = append(validationErrors, mcpv1alpha1.ValidationMessageImageRegistryRequired)
+		validationErrors = append(validationErrors, ValidationMessageImageRegistryRequired)
 	}
 
 	// If there are validation errors, return a descriptive error
@@ -115,7 +115,7 @@ func (r *McpCatalogReconciler) setReadyCondition(mcpCatalog *mcpv1alpha1.McpCata
 	now := metav1.NewTime(time.Now())
 
 	readyCondition := metav1.Condition{
-		Type:               mcpv1alpha1.ConditionTypeReady,
+		Type:               ConditionTypeReady,
 		Status:             status,
 		Reason:             reason,
 		Message:            message,
