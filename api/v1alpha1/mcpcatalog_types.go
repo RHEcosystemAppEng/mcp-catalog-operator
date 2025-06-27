@@ -20,13 +20,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// Validation messages
-const (
-	ValidationMessageDescriptionRequired   = "description field is required and cannot be empty or null"
-	ValidationMessageImageRegistryRequired = "imageRegistry field is required and cannot be empty or null"
-	ValidationMessageCatalogSuccess        = "McpCatalog spec is valid"
-)
-
 type CatalogRef struct {
 	Name      string  `json:"name"`
 	Namespace *string `json:"namespace,omitempty"`

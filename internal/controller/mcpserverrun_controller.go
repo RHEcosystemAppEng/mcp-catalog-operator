@@ -114,9 +114,9 @@ func (r *McpServerRunReconciler) Reconcile(ctx context.Context, req ctrl.Request
 			return ctrl.Result{}, fmt.Errorf("failed to get referenced McpCertifiedServer: %w", err)
 		}
 
-		serverImage = &mcpCertServer.Spec.McpServer.Image
-		command = mcpCertServer.Spec.McpServer.Command
-		args = append(args, mcpCertServer.Spec.McpServer.Args...)
+		serverImage = &mcpCertServer.Spec.McpServer.Container.Image
+		command = mcpCertServer.Spec.McpServer.Container.Command
+		args = append(args, mcpCertServer.Spec.McpServer.Container.Args...)
 	}
 
 	if mcpServerRun.Spec.ServerMode == "container" {

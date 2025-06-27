@@ -31,6 +31,20 @@ import (
 	mcpv1alpha1 "github.com/RHEcosystemAppEng/mcp-registry-operator/api/v1alpha1"
 )
 
+// Helper function to create McpCatalog instances
+var createMcpCatalog = func(name, namespace, description, imageRegistry string) *mcpv1alpha1.McpCatalog {
+	return &mcpv1alpha1.McpCatalog{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+		},
+		Spec: mcpv1alpha1.McpCatalogSpec{
+			Description:   description,
+			ImageRegistry: imageRegistry,
+		},
+	}
+}
+
 var _ = Describe("McpCatalog Controller", func() {
 	Context("When reconciling a resource", func() {
 		const resourceName = "test-resource"
@@ -47,16 +61,7 @@ var _ = Describe("McpCatalog Controller", func() {
 			By("creating the custom resource for the Kind McpCatalog")
 			err := k8sClient.Get(ctx, typeNamespacedName, mcpcatalog)
 			if err != nil && errors.IsNotFound(err) {
-				resource := &mcpv1alpha1.McpCatalog{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      resourceName,
-						Namespace: "default",
-					},
-					Spec: mcpv1alpha1.McpCatalogSpec{
-						Description:   "Test catalog description",
-						ImageRegistry: "test-registry.example.com",
-					},
-				}
+				resource := createMcpCatalog(resourceName, "default", "Test catalog for server validation", "test-registry.example.com")
 				Expect(k8sClient.Create(ctx, resource)).To(Succeed())
 			}
 		})
@@ -87,11 +92,11 @@ var _ = Describe("McpCatalog Controller", func() {
 				updatedCatalog := &mcpv1alpha1.McpCatalog{}
 				err := k8sClient.Get(ctx, typeNamespacedName, updatedCatalog)
 				Expect(err).NotTo(HaveOccurred())
-				readyCondition := meta.FindStatusCondition(updatedCatalog.Status.Conditions, mcpv1alpha1.ConditionTypeReady)
+				readyCondition := meta.FindStatusCondition(updatedCatalog.Status.Conditions, ConditionTypeReady)
 				// Check that the Ready condition is set to True
 				Expect(readyCondition.Status).To(Equal(metav1.ConditionTrue))
-				Expect(readyCondition.Reason).To(Equal(mcpv1alpha1.ConditionReasonValidationSucceeded))
-				Expect(readyCondition.Message).To(Equal(mcpv1alpha1.ValidationMessageCatalogSuccess))
+				Expect(readyCondition.Reason).To(Equal(ConditionReasonValidationSucceeded))
+				Expect(readyCondition.Message).To(Equal(ValidationMessageCatalogSuccess))
 			}, 5*time.Second, 100*time.Millisecond).Should(Succeed())
 
 		})
@@ -111,16 +116,7 @@ var _ = Describe("McpCatalog Controller", func() {
 			By("creating an invalid custom resource for the Kind McpCatalog")
 			err := k8sClient.Get(ctx, typeNamespacedName, &mcpv1alpha1.McpCatalog{})
 			if err != nil && errors.IsNotFound(err) {
-				resource := &mcpv1alpha1.McpCatalog{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      invalidResourceName,
-						Namespace: "default",
-					},
-					Spec: mcpv1alpha1.McpCatalogSpec{
-						Description:   "   ", // Invalid: whitespace-only description
-						ImageRegistry: "test-registry.example.com",
-					},
-				}
+				resource := createMcpCatalog(invalidResourceName, "default", "   ", "test-registry.example.com")
 				Expect(k8sClient.Create(ctx, resource)).To(Succeed())
 			}
 		})
@@ -155,11 +151,11 @@ var _ = Describe("McpCatalog Controller", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			// Check that the Ready condition is set to False
-			readyCondition := meta.FindStatusCondition(updatedCatalog.Status.Conditions, mcpv1alpha1.ConditionTypeReady)
+			readyCondition := meta.FindStatusCondition(updatedCatalog.Status.Conditions, ConditionTypeReady)
 			Expect(readyCondition).NotTo(BeNil())
 			Expect(readyCondition.Status).To(Equal(metav1.ConditionFalse))
-			Expect(readyCondition.Reason).To(Equal(mcpv1alpha1.ConditionReasonValidationFailed))
-			Expect(readyCondition.Message).To(ContainSubstring(mcpv1alpha1.ValidationMessageDescriptionRequired))
+			Expect(readyCondition.Reason).To(Equal(ConditionReasonValidationFailed))
+			Expect(readyCondition.Message).To(ContainSubstring(ValidationMessageDescriptionRequired))
 		})
 	})
 
@@ -170,16 +166,7 @@ var _ = Describe("McpCatalog Controller", func() {
 				Scheme: k8sClient.Scheme(),
 			}
 
-			validCatalog := &mcpv1alpha1.McpCatalog{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "valid-catalog",
-					Namespace: "default",
-				},
-				Spec: mcpv1alpha1.McpCatalogSpec{
-					Description:   "A valid catalog description",
-					ImageRegistry: "registry.example.com",
-				},
-			}
+			validCatalog := createMcpCatalog("valid-catalog", "default", "A valid catalog description", "registry.example.com")
 
 			err := controllerReconciler.validateMcpCatalog(validCatalog)
 			Expect(err).NotTo(HaveOccurred())
@@ -191,20 +178,11 @@ var _ = Describe("McpCatalog Controller", func() {
 				Scheme: k8sClient.Scheme(),
 			}
 
-			invalidCatalog := &mcpv1alpha1.McpCatalog{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "invalid-catalog",
-					Namespace: "default",
-				},
-				Spec: mcpv1alpha1.McpCatalogSpec{
-					Description:   "",
-					ImageRegistry: "registry.example.com",
-				},
-			}
+			invalidCatalog := createMcpCatalog("invalid-catalog", "default", "", "registry.example.com")
 
 			err := controllerReconciler.validateMcpCatalog(invalidCatalog)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring(mcpv1alpha1.ValidationMessageDescriptionRequired))
+			Expect(err.Error()).To(ContainSubstring(ValidationMessageDescriptionRequired))
 		})
 
 		It("should reject McpCatalog with empty imageRegistry", func() {
@@ -213,20 +191,11 @@ var _ = Describe("McpCatalog Controller", func() {
 				Scheme: k8sClient.Scheme(),
 			}
 
-			invalidCatalog := &mcpv1alpha1.McpCatalog{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "invalid-catalog",
-					Namespace: "default",
-				},
-				Spec: mcpv1alpha1.McpCatalogSpec{
-					Description:   "A valid description",
-					ImageRegistry: "",
-				},
-			}
+			invalidCatalog := createMcpCatalog("invalid-catalog", "default", "A valid description", "")
 
 			err := controllerReconciler.validateMcpCatalog(invalidCatalog)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring(mcpv1alpha1.ValidationMessageImageRegistryRequired))
+			Expect(err.Error()).To(ContainSubstring(ValidationMessageImageRegistryRequired))
 		})
 
 		It("should reject McpCatalog with whitespace-only description", func() {
@@ -248,7 +217,7 @@ var _ = Describe("McpCatalog Controller", func() {
 
 			err := controllerReconciler.validateMcpCatalog(invalidCatalog)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring(mcpv1alpha1.ValidationMessageDescriptionRequired))
+			Expect(err.Error()).To(ContainSubstring(ValidationMessageDescriptionRequired))
 		})
 
 		It("should reject McpCatalog with whitespace-only imageRegistry", func() {
@@ -257,20 +226,11 @@ var _ = Describe("McpCatalog Controller", func() {
 				Scheme: k8sClient.Scheme(),
 			}
 
-			invalidCatalog := &mcpv1alpha1.McpCatalog{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "invalid-catalog",
-					Namespace: "default",
-				},
-				Spec: mcpv1alpha1.McpCatalogSpec{
-					Description:   "A valid description",
-					ImageRegistry: "   ",
-				},
-			}
+			invalidCatalog := createMcpCatalog("invalid-catalog", "default", "A valid description", "   ")
 
 			err := controllerReconciler.validateMcpCatalog(invalidCatalog)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring(mcpv1alpha1.ValidationMessageImageRegistryRequired))
+			Expect(err.Error()).To(ContainSubstring(ValidationMessageImageRegistryRequired))
 		})
 
 		It("should reject McpCatalog with both fields empty", func() {
@@ -292,8 +252,8 @@ var _ = Describe("McpCatalog Controller", func() {
 
 			err := controllerReconciler.validateMcpCatalog(invalidCatalog)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring(mcpv1alpha1.ValidationMessageDescriptionRequired))
-			Expect(err.Error()).To(ContainSubstring(mcpv1alpha1.ValidationMessageImageRegistryRequired))
+			Expect(err.Error()).To(ContainSubstring(ValidationMessageDescriptionRequired))
+			Expect(err.Error()).To(ContainSubstring(ValidationMessageImageRegistryRequired))
 		})
 	})
 })

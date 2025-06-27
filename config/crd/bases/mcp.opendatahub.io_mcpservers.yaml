@@ -39,15 +39,6 @@ spec:
           spec:
             description: McpServerSpec defines the desired state of McpServer.
             properties:
-              catalogRef:
-                properties:
-                  name:
-                    type: string
-                  namespace:
-                    type: string
-                required:
-                - name
-                type: object
               server_detail:
                 description: ServerDetail represents detailed server information as
                   defined in the spec

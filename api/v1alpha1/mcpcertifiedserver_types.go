@@ -20,31 +20,75 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
+// +kubebuilder:validation:Enum=quarantined;in-review;certified;rejected
+type CertificationStatus string
 
-type McpCertifiedServerServerSpec struct {
-	Proxy   *bool    `json:"proxy,omitempty"`
-	Image   string   `json:"image"`
-	Command string   `json:"command"`
-	Args    []string `json:"args"`
+const (
+	CertificationStatusQuarantined CertificationStatus = "quarantined"
+	CertificationStatusInReview    CertificationStatus = "in-review"
+	CertificationStatusCertified   CertificationStatus = "certified"
+	CertificationStatusRejected    CertificationStatus = "rejected"
+)
+
+type ImageBuildStatus string
+
+const (
+	ImageBuildStatusNotStarted ImageBuildStatus = "not-started"
+	ImageBuildStatusInProgress ImageBuildStatus = "in-progress"
+	ImageBuildStatusCompleted  ImageBuildStatus = "completed"
+	ImageBuildStatusFailed     ImageBuildStatus = "failed"
+)
+
+// +kubebuilder:validation:Enum=container;remote
+type ServerType string
+
+const (
+	ServerTypeContainer ServerType = "container"
+	ServerTypeRemote    ServerType = "remote"
+)
+
+// ContainerServerSpec defines the configuration for a container-based MCP server
+type ContainerServerSpec struct {
+	Image string `json:"image"`
+	// The command to run the server
+	Command string `json:"command"`
+	// The arguments to pass to the server
+	Args []string `json:"args"`
+	// The environment variables to set for the server
 	EnvVars []string `json:"envVars"`
+}
+
+// RemoteServerSpec defines the configuration for a remote MCP server
+type RemoteServerSpec struct {
+	TransportType string `json:"transportType"`
+	URL           string `json:"url"`
+}
+
+// McpCertifiedServerServerSpec defines the server configuration for McpCertifiedServer.
+// It can be either a container image or a remote service.
+type McpCertifiedServerServerSpec struct {
+	// Type discriminator to determine the server type
+	// +kubebuilder:validation:Required
+	Type ServerType `json:"type"`
+
+	// Container configuration (required when type is "container")
+	// +optional
+	Container *ContainerServerSpec `json:"container,omitempty"`
+
+	// Remote configuration (required when type is "remote")
+	// +optional
+	Remote *RemoteServerSpec `json:"remote,omitempty"`
 }
 
 // McpCertifiedServerSpec defines the desired state of McpCertifiedServer.
 type McpCertifiedServerSpec struct {
-	CatalogRef   CatalogRef                   `json:"catalogRef,omitempty"`
-	Description  string                       `json:"description"`
-	Provider     string                       `json:"provider"`
-	License      string                       `json:"license"`
-	Competencies []string                     `json:"competencies"`
-	McpServer    McpCertifiedServerServerSpec `json:"mcpServer"`
+	McpServer McpCertifiedServerServerSpec `json:"mcpServer"`
 }
 
 // McpCertifiedServerStatus defines the observed state of McpCertifiedServer.
 type McpCertifiedServerStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	CertificationStatus CertificationStatus `json:"certificationStatus,omitempty"`
+	ImageBuildStatus    ImageBuildStatus    `json:"imageBuildStatus,omitempty"`
 }
 
 // +kubebuilder:object:root=true

@@ -13,7 +13,7 @@ spec:
   mcpServer:
     guardian: false
     mcpServerRef:
-      name: kubernetes-mcpserver
+      name: kubernetes-mcp-server
 ---
 apiVersion: mcp.opendatahub.io/v1alpha1
 kind: McpServerRun

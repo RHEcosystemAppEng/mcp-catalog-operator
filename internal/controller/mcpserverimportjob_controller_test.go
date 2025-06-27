@@ -51,7 +51,9 @@ var _ = Describe("McpServerImportJob Controller", func() {
 						Name:      resourceName,
 						Namespace: "default",
 					},
-					// TODO(user): Specify other spec details if needed.
+					Spec: mcpv1alpha1.McpServerImportJobSpec{
+						RegistryURI: "http://mcp-registry.com",
+					},
 				}
 				Expect(k8sClient.Create(ctx, resource)).To(Succeed())
 			}

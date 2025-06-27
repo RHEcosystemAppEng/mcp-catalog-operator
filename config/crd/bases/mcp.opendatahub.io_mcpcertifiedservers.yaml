@@ -40,56 +40,70 @@ spec:
           spec:
             description: McpCertifiedServerSpec defines the desired state of McpCertifiedServer.
             properties:
-              catalogRef:
-                properties:
-                  name:
-                    type: string
-                  namespace:
-                    type: string
-                required:
-                - name
-                type: object
-              competencies:
-                items:
-                  type: string
-                type: array
-              description:
-                type: string
-              license:
-                type: string
               mcpServer:
+                description: |-
+                  McpCertifiedServerServerSpec defines the server configuration for McpCertifiedServer.
+                  It can be either a container image or a remote service.
                 properties:
-                  args:
-                    items:
-                      type: string
-                    type: array
-                  command:
+                  container:
+                    description: Container configuration (required when type is "container")
+                    properties:
+                      args:
+                        description: The arguments to pass to the server
+                        items:
+                          type: string
+                        type: array
+                      command:
+                        description: The command to run the server
+                        type: string
+                      envVars:
+                        description: The environment variables to set for the server
+                        items:
+                          type: string
+                        type: array
+                      image:
+                        type: string
+                    required:
+                    - args
+                    - command
+                    - envVars
+                    - image
+                    type: object
+                  remote:
+                    description: Remote configuration (required when type is "remote")
+                    properties:
+                      transportType:
+                        type: string
+                      url:
+                        type: string
+                    required:
+                    - transportType
+                    - url
+                    type: object
+                  type:
+                    description: Type discriminator to determine the server type
+                    enum:
+                    - container
+                    - remote
                     type: string
-                  envVars:
-                    items:
-                      type: string
-                    type: array
-                  image:
-                    type: string
-                  proxy:
-                    type: boolean
                 required:
-                - args
-                - command
-                - envVars
-                - image
+                - type
                 type: object
-              provider:
-                type: string
             required:
-            - competencies
-            - description
-            - license
             - mcpServer
-            - provider
             type: object
           status:
             description: McpCertifiedServerStatus defines the observed state of McpCertifiedServer.
+            properties:
+              certificationStatus:
+                enum:
+                - quarantined
+                - in-review
+                - certified
+                - rejected
+                type: string
+              imageBuildStatus:
+                type: string
             type: object
         type: object
     served: true

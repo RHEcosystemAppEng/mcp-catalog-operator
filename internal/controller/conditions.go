@@ -14,7 +14,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1alpha1
+package controller
+
+const (
+	ValidationMessageDescriptionRequired   = "description field is required and cannot be empty or null"
+	ValidationMessageImageRegistryRequired = "imageRegistry field is required and cannot be empty or null"
+	ValidationMessageCatalogSuccess        = "McpCatalog spec is valid"
+	ValidationMessageCatalogNotFound       = "referenced catalog does not exist"
+	ValidationMessageServerSuccess         = "McpServer spec is valid"
+	ValidationMessageCrossNamespaces       = "referenced catalog is in a different namespace"
+)
 
 // Condition types
 const (
@@ -26,4 +35,5 @@ const (
 const (
 	ConditionReasonValidationSucceeded = "ValidationSucceeded"
 	ConditionReasonValidationFailed    = "ValidationFailed"
+	ConditionReasonCrossNamespaces     = "CrossNamespaces"
 )

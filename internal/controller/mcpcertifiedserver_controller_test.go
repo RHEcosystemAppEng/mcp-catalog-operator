@@ -31,21 +31,9 @@ import (
 
 // Test helper functions
 func createMcpCertifiedServerSpec(options ...func(*mcpv1alpha1.McpCertifiedServerSpec)) mcpv1alpha1.McpCertifiedServerSpec {
-	namespace := "default"
 	spec := mcpv1alpha1.McpCertifiedServerSpec{
-		CatalogRef: mcpv1alpha1.CatalogRef{
-			Name:      "test-registry",
-			Namespace: &namespace,
-		},
-		Description:  "Test server",
-		Provider:     "test",
-		License:      "MIT",
-		Competencies: []string{"test"},
 		McpServer: mcpv1alpha1.McpCertifiedServerServerSpec{
-			Image:   "quay.io/ecosystem-appeng/mcp-registry:amd64-0.1",
-			Command: "mcp-registry",
-			Args:    []string{"--port", "8080"},
-			EnvVars: []string{"TEST=value"},
+			Type: "",
 		},
 	}
 
@@ -57,32 +45,60 @@ func createMcpCertifiedServerSpec(options ...func(*mcpv1alpha1.McpCertifiedServe
 	return spec
 }
 
-func withCatalogRef(name, namespace string) func(*mcpv1alpha1.McpCertifiedServerSpec) {
+func withContainerImage() func(*mcpv1alpha1.McpCertifiedServerSpec) {
 	return func(spec *mcpv1alpha1.McpCertifiedServerSpec) {
-		spec.CatalogRef.Name = name
-		if namespace != "" {
-			spec.CatalogRef.Namespace = &namespace
+		if spec.McpServer.Type != mcpv1alpha1.ServerTypeContainer {
+			spec.McpServer.Type = mcpv1alpha1.ServerTypeContainer
 		}
+		if spec.McpServer.Container == nil {
+			spec.McpServer.Container = &mcpv1alpha1.ContainerServerSpec{
+				Command: "mcp-registry",
+				Args:    []string{"--port", "8080"},
+				EnvVars: []string{"TEST=value"},
+			}
+		}
+		spec.McpServer.Container.Image = "custom:latest"
 	}
 }
-
-func withCompetencies(competencies []string) func(*mcpv1alpha1.McpCertifiedServerSpec) {
+func withRemoteUri() func(*mcpv1alpha1.McpCertifiedServerSpec) {
 	return func(spec *mcpv1alpha1.McpCertifiedServerSpec) {
-		spec.Competencies = competencies
+		if spec.McpServer.Type != mcpv1alpha1.ServerTypeRemote {
+			spec.McpServer.Type = mcpv1alpha1.ServerTypeRemote
+		}
+		if spec.McpServer.Remote == nil {
+			spec.McpServer.Remote = &mcpv1alpha1.RemoteServerSpec{
+				TransportType: "http",
+			}
+		}
+		spec.McpServer.Remote.URL = "http://localhost:8080"
 	}
 }
 
-func withImage(image string) func(*mcpv1alpha1.McpCertifiedServerSpec) {
-	return func(spec *mcpv1alpha1.McpCertifiedServerSpec) {
-		spec.McpServer.Image = image
+func createMcpCertifiedServer(name string, spec mcpv1alpha1.McpCertifiedServerSpec, catalogName, catalogNamespace string) *mcpv1alpha1.McpCertifiedServer {
+	annotations := make(map[string]string)
+	if catalogName != "" {
+		annotations[McpCatalogNameAnnotation] = catalogName
 	}
-}
+	if catalogNamespace != "" {
+		annotations[McpCatalogNamespaceAnnotation] = catalogNamespace
+	}
 
-func createMcpCertifiedServer(name, namespace string, spec mcpv1alpha1.McpCertifiedServerSpec) *mcpv1alpha1.McpCertifiedServer {
 	return &mcpv1alpha1.McpCertifiedServer{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
+			Name:        name,
+			Namespace:   "default",
+			Annotations: annotations,
+		},
+		Spec: spec,
+	}
+}
+
+func createMcpCertifiedServerWithoutAnnotations(name, namespace string, spec mcpv1alpha1.McpCertifiedServerSpec) *mcpv1alpha1.McpCertifiedServer {
+	return &mcpv1alpha1.McpCertifiedServer{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        name,
+			Namespace:   namespace,
+			Annotations: nil,
 		},
 		Spec: spec,
 	}
@@ -105,6 +121,32 @@ func cleanupResource(ctx context.Context, namespacedName types.NamespacedName) {
 	}
 }
 
+func createAndExpectMcpCatalog(ctx context.Context, catalog *mcpv1alpha1.McpCatalog, shouldSucceed bool) {
+	err := k8sClient.Create(ctx, catalog)
+	if shouldSucceed {
+		Expect(err).To(Succeed())
+	} else {
+		Expect(err).To(HaveOccurred())
+	}
+}
+
+func cleanupMcpCatalog(ctx context.Context, namespacedName types.NamespacedName) {
+	catalog := &mcpv1alpha1.McpCatalog{}
+	err := k8sClient.Get(ctx, namespacedName, catalog)
+	if err == nil {
+		Expect(k8sClient.Delete(ctx, catalog)).To(Succeed())
+	}
+}
+
+func hasOwnerReference(resource *mcpv1alpha1.McpCertifiedServer, ownerName, ownerKind string) bool {
+	for _, ref := range resource.GetOwnerReferences() {
+		if ref.Name == ownerName && ref.Kind == ownerKind {
+			return true
+		}
+	}
+	return false
+}
+
 var _ = Describe("McpCertifiedServer Controller", func() {
 	const namespace = "default"
 	ctx := context.Background()
@@ -118,7 +160,7 @@ var _ = Describe("McpCertifiedServer Controller", func() {
 				}
 
 				spec := createMcpCertifiedServerSpec(specOptions...)
-				resource := createMcpCertifiedServer(resourceName, namespace, spec)
+				resource := createMcpCertifiedServer(resourceName, spec, "", "")
 
 				By("creating the custom resource for the Kind McpCertifiedServer")
 				createAndExpectResource(ctx, resource, shouldCreateSucceed)
@@ -143,38 +185,32 @@ var _ = Describe("McpCertifiedServer Controller", func() {
 					}
 				}
 			},
-			Entry("with missing registry reference",
-				"test-missing-registry",
-				[]func(*mcpv1alpha1.McpCertifiedServerSpec){withCatalogRef("non-existent-registry", namespace)},
-				true,  // creation should succeed
-				false, // reconcile should fail
-			),
-			Entry("with different competencies",
-				"test-different-competencies",
-				[]func(*mcpv1alpha1.McpCertifiedServerSpec){withCompetencies([]string{"ai", "search", "tools"})},
-				true,  // creation should succeed
-				false, // reconcile should fail (no registry)
-			),
 			Entry("with custom image",
 				"test-custom-image",
-				[]func(*mcpv1alpha1.McpCertifiedServerSpec){withImage("custom:latest")},
+				[]func(*mcpv1alpha1.McpCertifiedServerSpec){withContainerImage()},
 				true,  // creation should succeed
 				false, // reconcile should fail (no registry)
+			),
+			Entry("with remote URI",
+				"test-remote-uri",
+				[]func(*mcpv1alpha1.McpCertifiedServerSpec){withRemoteUri()},
+				true,  // creation should succeed
+				false, // reconcile should fail (no catalog)
 			),
 		)
 	})
 
 	Context("When testing specific scenarios", func() {
-		It("should fail to reconcile when registry is missing", func() {
-			resourceName := "test-no-registry"
+		It("should fail to reconcile when catalog is missing", func() {
+			resourceName := "test-no-catalog"
 			typeNamespacedName := types.NamespacedName{
 				Name:      resourceName,
 				Namespace: namespace,
 			}
 
 			By("creating the custom resource for the Kind McpCertifiedServer with no McpRegistry")
-			spec := createMcpCertifiedServerSpec(withCatalogRef("missing-registry", namespace))
-			resource := createMcpCertifiedServer(resourceName, namespace, spec)
+			spec := createMcpCertifiedServerSpec(withContainerImage())
+			resource := createMcpCertifiedServer(resourceName, spec, "", "")
 
 			Expect(k8sClient.Create(ctx, resource)).To(Succeed())
 			defer cleanupResource(ctx, typeNamespacedName)
@@ -189,6 +225,115 @@ var _ = Describe("McpCertifiedServer Controller", func() {
 				NamespacedName: typeNamespacedName,
 			})
 			Expect(err).To(HaveOccurred())
+		})
+	})
+
+	Context("When testing owner reference behavior", func() {
+		It("should set owner reference when annotated McpCatalog exists", func() {
+			catalogName := "test-catalog"
+			catalogNamespace := namespace
+			resourceName := "test-with-catalog"
+
+			catalogNamespacedName := types.NamespacedName{
+				Name:      catalogName,
+				Namespace: catalogNamespace,
+			}
+			resourceNamespacedName := types.NamespacedName{
+				Name:      resourceName,
+				Namespace: namespace,
+			}
+
+			By("creating the McpCatalog first")
+			catalog := createMcpCatalog(catalogName, catalogNamespace, "Test catalog", "quay.io/test")
+			createAndExpectMcpCatalog(ctx, catalog, true)
+			defer cleanupMcpCatalog(ctx, catalogNamespacedName)
+
+			By("creating the McpCertifiedServer with catalog annotations")
+			spec := createMcpCertifiedServerSpec(withContainerImage())
+			resource := createMcpCertifiedServer(resourceName, spec, catalogName, catalogNamespace)
+
+			Expect(k8sClient.Create(ctx, resource)).To(Succeed())
+			defer cleanupResource(ctx, resourceNamespacedName)
+
+			By("Reconciling the created resource")
+			controllerReconciler := &McpCertifiedServerReconciler{
+				Client: k8sClient,
+				Scheme: k8sClient.Scheme(),
+			}
+
+			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{
+				NamespacedName: resourceNamespacedName,
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			By("Verifying that owner reference is set")
+			updatedResource := &mcpv1alpha1.McpCertifiedServer{}
+			Expect(k8sClient.Get(ctx, resourceNamespacedName, updatedResource)).To(Succeed())
+			Expect(hasOwnerReference(updatedResource, catalogName, "McpCatalog")).To(BeTrue())
+		})
+
+		It("should not set owner reference and fail reconciliation when annotated McpCatalog does not exist", func() {
+			resourceName := "test-with-missing-catalog"
+			resourceNamespacedName := types.NamespacedName{
+				Name:      resourceName,
+				Namespace: namespace,
+			}
+
+			By("creating the McpCertifiedServer with non-existent catalog annotations")
+			spec := createMcpCertifiedServerSpec(withContainerImage())
+			resource := createMcpCertifiedServer(resourceName, spec, "non-existent-catalog", namespace)
+
+			Expect(k8sClient.Create(ctx, resource)).To(Succeed())
+			defer cleanupResource(ctx, resourceNamespacedName)
+
+			By("Reconciling the created resource")
+			controllerReconciler := &McpCertifiedServerReconciler{
+				Client: k8sClient,
+				Scheme: k8sClient.Scheme(),
+			}
+
+			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{
+				NamespacedName: resourceNamespacedName,
+			})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("failed to get McpCatalog"))
+
+			By("Verifying that owner reference is not set")
+			updatedResource := &mcpv1alpha1.McpCertifiedServer{}
+			Expect(k8sClient.Get(ctx, resourceNamespacedName, updatedResource)).To(Succeed())
+			Expect(hasOwnerReference(updatedResource, "non-existent-catalog", "McpCatalog")).To(BeFalse())
+		})
+
+		It("should not set owner reference and fail reconciliation when catalog annotation is missing", func() {
+			resourceName := "test-no-catalog-annotation"
+			resourceNamespacedName := types.NamespacedName{
+				Name:      resourceName,
+				Namespace: namespace,
+			}
+
+			By("creating the McpCertifiedServer without catalog annotations")
+			spec := createMcpCertifiedServerSpec(withContainerImage())
+			resource := createMcpCertifiedServerWithoutAnnotations(resourceName, namespace, spec)
+
+			Expect(k8sClient.Create(ctx, resource)).To(Succeed())
+			defer cleanupResource(ctx, resourceNamespacedName)
+
+			By("Reconciling the created resource")
+			controllerReconciler := &McpCertifiedServerReconciler{
+				Client: k8sClient,
+				Scheme: k8sClient.Scheme(),
+			}
+
+			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{
+				NamespacedName: resourceNamespacedName,
+			})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("no annotations found on object"))
+
+			By("Verifying that no owner references are set")
+			updatedResource := &mcpv1alpha1.McpCertifiedServer{}
+			Expect(k8sClient.Get(ctx, resourceNamespacedName, updatedResource)).To(Succeed())
+			Expect(updatedResource.GetOwnerReferences()).To(BeEmpty())
 		})
 	})
 })

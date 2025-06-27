@@ -1,47 +1,109 @@
+# yaml-language-server: $schema=../crd/bases/mcp.opendatahub.io_mcpcertifiedservers.yaml
 apiVersion: mcp.opendatahub.io/v1alpha1
 kind: McpCertifiedServer
 metadata:
   labels:
     app.kubernetes.io/name: mcp-registry-operator
     app.kubernetes.io/managed-by: kustomize
-  name: kubernetes-mcpserver
+  annotations:
+    mcp.opendatahub.io/mcp-catalog: red-hat-ecosystem-mcp-catalog
+    mcp.opendatahub.io/mcp-server: io-github-manusa-kubernetes-mcp-server-kubernetes-mcp-server
+    mcp.opendatahub.io/mcp-server-version: 0.0.1-seed
+    mcp.opendatahub.io/mcp-server-package: manusa/kubernetes-mcp-server
+    mcp.opendatahub.io/description: >
+      Model Context Protocol (MCP) server for Kubernetes and OpenShift
+    mcp.opendatahub.io/long-description: >
+      The `kubernetes-mcp-server` is a Kubernetes Model Context Protocol (MCP) server for Kubernetes and OpenShift.
+
+      ### Key Features
+      * Automatic detection of Kubernetes configuration changes.
+      * Manages `.kube/config` or in-cluster configurations.
+      * Performs CRUD operations on Kubernetes/OpenShift resources.
+      * Specific operations for Pods (list, get, delete, logs, exec, run), Namespaces (list), Events (view), and OpenShift Projects (list).
+      * No external dependencies like `kubectl` or `helm`.
+      ---
+      ### Getting Started
+      * Instructions for setup with `npx` (for Claude Desktop, VS Code/VS Code Insiders, Goose CLI).
+      * Requires access to a Kubernetes cluster.
+      ---
+      ### Demos
+      * Examples include diagnosing OpenShift deployments and deploying games.
+      ---
+      ### Configuration
+      * Configurable via command-line arguments (e.g., `--sse-port`, `--log-level`, `--kubeconfig`).
+      ---
+      ### Tools
+      * Lists available operations and their parameters (e.g., `configuration_view`, `events_list`, `namespaces_list`, `pods_` and `resources_` functions).
+      ---
+      ### Development
+      * Instructions for compiling and running with `mcp-inspector`.
+    mcp.opendatahub.io/server-provider: https://github.com/manusa
+    mcp.opendatahub.io/image-provider: Red Hat
+    mcp.opendatahub.io/homepage: https://github.com/manusa/kubernetes-mcp-server
+    mcp.opendatahub.io/license: Apache-2.0
+    mcp.opendatahub.io/competencies: ['kubernetes', 'openshift']
+  name: kubernetes-mcp-server
 spec:
-  catalogRef:
-    name: red-hat-ecosystem-mcp-catalog
-  description: >
-    # Kubernetes MCP Server
-
-    * [GitHub](https://github.com/manusa/kubernetes-mcp-server)
-    
-    * [Container image](quay.io/manusa/kubernetes_mcp_server:latest-linux-amd64)
-
-    ## ✨ Features <a id="features"></a>
-
-    A powerful and flexible Kubernetes [Model Context Protocol (MCP)](https://blog.marcnuri.com/model-context-protocol-mcp-introduction) server implementation with support for **Kubernetes** and **OpenShift**.
-
-    - **✅ Configuration**:
-      - Automatically detect changes in the Kubernetes configuration and update the MCP server.
-      - **View** and manage the current [Kubernetes `.kube/config`](https://blog.marcnuri.com/where-is-my-default-kubeconfig-file) or in-cluster configuration.
-    - **✅ Generic Kubernetes Resources**: Perform operations on **any** Kubernetes or OpenShift resource.
-      - Any CRUD operation (Create or Update, Get, List, Delete).
-    - **✅ Pods**: Perform Pod-specific operations.
-      - **List** pods in all namespaces or in a specific namespace.
-      - **Get** a pod by name from the specified namespace.
-      - **Delete** a pod by name from the specified namespace.
-      - **Show logs** for a pod by name from the specified namespace.
-      - **Exec** into a pod and run a command.
-      - **Run** a container image in a pod and optionally expose it.
-    - **✅ Namespaces**: List Kubernetes Namespaces.
-    - **✅ Events**: View Kubernetes events in all namespaces or in a specific namespace.
-    - **✅ Projects**: List OpenShift Projects.
-  provider: RedHat
-  license: Apache 2.0
-  competencies: ['kubernetes', 'openshift']
   mcpServer:
-    proxy: false
-    image: quay.io/manusa/kubernetes_mcp_server:latest-linux-amd64
-    command: "kubernetes-mcp-server"
-    envVars: []
-    args:
-      - "--sse-port"
-      - "8000" 
+    type: container
+    container:
+      image: quay.io/manusa/kubernetes_mcp_server:latest-linux-amd64
+      command: "kubernetes-mcp-server"
+      envVars:
+        - KUBECONFIG
+      args:
+        - "--disable-destructive"
+        - "--log-level"
+        - "4"
+---
+# yaml-language-server: $schema=../crd/bases/mcp.opendatahub.io_mcpcertifiedservers.yaml
+apiVersion: mcp.opendatahub.io/v1alpha1
+kind: McpCertifiedServer
+metadata:
+  labels:
+    app.kubernetes.io/name: mcp-registry-operator
+    app.kubernetes.io/managed-by: kustomize
+  annotations:
+    mcp.opendatahub.io/mcp-catalog: red-hat-ecosystem-mcp-catalog
+    mcp.opendatahub.io/mcp-server: io-github-cloudflare-mcp-server-cloudflare
+    mcp.opendatahub.io/mcp-server-version: 0.0.1-seed
+    mcp.opendatahub.io/description: ''
+    mcp.opendatahub.io/long-description: >
+      The Cloudflare MCP Server README introduces the **Model Context Protocol (MCP)**, a standard for managing context between Large Language Models (LLMs) and external systems.
+
+      This repository offers **MCP servers** that connect to Cloudflare services, allowing MCP clients (like Cursor or Claude) to:
+      * Read configurations.
+      * Process information.
+      * Suggest and implement changes across Cloudflare's application development, security, and performance services.
+
+      **Included Servers:**
+      * Documentation
+      * Workers Bindings
+      * Observability
+      * Radar
+      * (Descriptions and URLs provided for each)
+
+      **Accessing Remote MCP Servers:**
+      * Directly, if the client supports it.
+      * By configuring a `mcp-remote` file.
+
+      **Integration with OpenAI's Responses API:**
+      * Instructions provided, emphasizing the need for appropriate API token permissions.
+
+      **Troubleshooting:**
+      * Tips for common issues, such as Claude reaching its context-length limit.
+
+      **Note:**
+      * Some features may require a paid Cloudflare Workers plan.
+    mcp.opendatahub.io/server-provider: https://github.com/cloudflare
+    mcp.opendatahub.io/image-provider: Red Hat
+    mcp.opendatahub.io/homepage: https://github.com/cloudflare/mcp-server-cloudflare
+    mcp.opendatahub.io/license: Apache-2.0
+    mcp.opendatahub.io/competencies: ['cloudfare']
+  name: cloudflare-mcp-server
+spec:
+  mcpServer:
+    type: remote
+    remote:
+      transportType: sse
+      url: https://observability.mcp.cloudflare.com/sse

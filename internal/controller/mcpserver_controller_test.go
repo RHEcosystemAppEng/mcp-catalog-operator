@@ -33,31 +33,23 @@ import (
 )
 
 var _ = Describe("McpServer Controller", func() {
-	// Helper function to create McpCatalog instances
-	createMcpCatalog := func(name, namespace, description, imageRegistry string) *mcpv1alpha1.McpCatalog {
-		return &mcpv1alpha1.McpCatalog{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      name,
-				Namespace: namespace,
-			},
-			Spec: mcpv1alpha1.McpCatalogSpec{
-				Description:   description,
-				ImageRegistry: imageRegistry,
-			},
-		}
-	}
-
 	// Helper function to create McpServer instances
 	createMcpServer := func(name, namespace, catalogName string, catalogNamespace *string) *mcpv1alpha1.McpServer {
+		annotations := make(map[string]string)
+		if catalogName != "" {
+			annotations[McpCatalogNameAnnotation] = catalogName
+		}
+		if catalogNamespace != nil {
+			annotations[McpCatalogNamespaceAnnotation] = *catalogNamespace
+		}
+
 		server := &mcpv1alpha1.McpServer{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      name,
-				Namespace: namespace,
+				Name:        name,
+				Namespace:   namespace,
+				Annotations: annotations,
 			},
 			Spec: mcpv1alpha1.McpServerSpec{
-				CatalogRef: mcpv1alpha1.CatalogRef{
-					Name: catalogName,
-				},
 				ServerDetail: mcpv1alpha1.ServerDetail{
 					Server: mcpv1alpha1.Server{
 						ID:          "test-server",
@@ -76,11 +68,6 @@ var _ = Describe("McpServer Controller", func() {
 					},
 				},
 			},
-		}
-
-		// Set namespace if provided
-		if catalogNamespace != nil {
-			server.Spec.CatalogRef.Namespace = catalogNamespace
 		}
 
 		return server
@@ -109,11 +96,20 @@ var _ = Describe("McpServer Controller", func() {
 			updatedServer := &mcpv1alpha1.McpServer{}
 			err := k8sClient.Get(ctx, namespacedName, updatedServer)
 			g.Expect(err).NotTo(HaveOccurred())
-			readyCondition := meta.FindStatusCondition(updatedServer.Status.Conditions, mcpv1alpha1.ConditionTypeReady)
+			readyCondition := meta.FindStatusCondition(updatedServer.Status.Conditions, ConditionTypeReady)
 			g.Expect(readyCondition).NotTo(BeNil())
 			g.Expect(readyCondition.Status).To(Equal(expectedStatus))
 			g.Expect(readyCondition.Reason).To(Equal(expectedReason))
 			g.Expect(readyCondition.Message).To(Equal(expectedMessage))
+
+			if expectedStatus == metav1.ConditionTrue {
+				catalogName := updatedServer.GetAnnotations()[McpCatalogNameAnnotation]
+				g.Expect(updatedServer.OwnerReferences).To(HaveLen(1))
+				g.Expect(updatedServer.OwnerReferences[0].Kind).To(Equal("McpCatalog"))
+				g.Expect(updatedServer.OwnerReferences[0].Name).To(Equal(catalogName))
+			} else {
+				g.Expect(updatedServer.OwnerReferences).To(BeEmpty())
+			}
 		}).Should(Succeed())
 	}
 
@@ -157,7 +153,7 @@ var _ = Describe("McpServer Controller", func() {
 		})
 
 		It("should successfully reconcile and set Ready condition to True", func() {
-			reconcileAndValidateStatus(typeNamespacedName, metav1.ConditionTrue, mcpv1alpha1.ConditionReasonValidationSucceeded, mcpv1alpha1.ValidationMessageServerSuccess)
+			reconcileAndValidateStatus(typeNamespacedName, metav1.ConditionTrue, ConditionReasonValidationSucceeded, ValidationMessageServerSuccess)
 		})
 	})
 
@@ -183,7 +179,7 @@ var _ = Describe("McpServer Controller", func() {
 		})
 
 		It("should set Ready condition to False when catalog does not exist", func() {
-			reconcileAndValidateStatus(typeNamespacedName, metav1.ConditionFalse, mcpv1alpha1.ConditionReasonValidationFailed, mcpv1alpha1.ValidationMessageCatalogNotFound)
+			reconcileAndValidateStatus(typeNamespacedName, metav1.ConditionFalse, ConditionReasonValidationFailed, ValidationMessageCatalogNotFound)
 		})
 	})
 
@@ -233,8 +229,8 @@ var _ = Describe("McpServer Controller", func() {
 			}
 		})
 
-		It("should successfully reconcile with catalog in different namespace", func() {
-			reconcileAndValidateStatus(typeNamespacedName, metav1.ConditionTrue, mcpv1alpha1.ConditionReasonValidationSucceeded, mcpv1alpha1.ValidationMessageServerSuccess)
+		It("should fail to reconcile with catalog in different namespace", func() {
+			reconcileAndValidateStatus(typeNamespacedName, metav1.ConditionFalse, ConditionReasonCrossNamespaces, ValidationMessageCrossNamespaces)
 		})
 	})
 })

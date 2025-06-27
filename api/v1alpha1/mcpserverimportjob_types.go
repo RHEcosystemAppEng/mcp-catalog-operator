@@ -25,9 +25,6 @@ import (
 
 // McpServerImportJobSpec defines the desired state of McpServerImportJob.
 type McpServerImportJobSpec struct {
-	// Reference to the MCP Catalog to import the servers into
-	CatalogRef CatalogRef `json:"catalogRef"`
-
 	// Reference to the MCP Registry to import the servers from
 	RegistryURI string `json:"registryUri"`
 }
