@@ -253,8 +253,15 @@ func (r *McpServerImportJobReconciler) createImportJob(ctx context.Context, mcpS
 		},
 	}
 
+	if mcpServerImportJob.Spec.NameFilter != nil {
+		job.Spec.Template.Spec.Containers[0].Env = append(job.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
+			Name:  "NAME_FILTER",
+			Value: *mcpServerImportJob.Spec.NameFilter,
+		})
+	}
+
 	// Set the owner reference to make the Job owned by the McpServerImportJob
-	if err := ctrl.SetControllerReference(mcpServerImportJob, job, r.Scheme); err != nil {
+	if err := controllerutil.SetControllerReference(mcpServerImportJob, job, r.Scheme); err != nil {
 		return fmt.Errorf("failed to set controller reference: %w", err)
 	}
 
@@ -368,7 +375,7 @@ func (r *McpServerImportJobReconciler) checkJobStatus(ctx context.Context, mcpSe
 			log.Info("Found ConfigMap for McpServerImportJob", "configMapName", configMapName)
 
 			// Set ownership of the ConfigMap to the McpServerImportJob
-			if err := ctrl.SetControllerReference(mcpServerImportJob, configMap, r.Scheme); err != nil {
+			if err := controllerutil.SetControllerReference(mcpServerImportJob, configMap, r.Scheme); err != nil {
 				log.Error(err, "Failed to set controller reference on ConfigMap", "configMapName", configMapName)
 				return fmt.Errorf("failed to set controller reference on ConfigMap: %w", err)
 			}
