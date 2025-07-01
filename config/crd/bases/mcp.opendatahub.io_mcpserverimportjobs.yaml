@@ -68,7 +68,6 @@ spec:
                 - failed
                 type: string
             required:
-            - configMapName
             - status
             type: object
         type: object

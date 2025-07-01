@@ -22,8 +22,10 @@ import (
 	"strconv"
 
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
 	mcpv1alpha1 "github.com/RHEcosystemAppEng/mcp-registry-operator/api/v1alpha1"
@@ -78,6 +80,29 @@ func (r *McpServerImportJobReconciler) initializeJob(ctx context.Context, mcpSer
 		needsStatusUpdate = true
 	}
 
+	if needsStatusUpdate {
+		err := r.Status().Update(ctx, mcpServerImportJob)
+		if err != nil {
+			log.Error(err, "Failed to update McpServerImportJob status")
+			return false, err
+		}
+	}
+
+	catalogName := mcpServerImportJob.Labels[McpCatalogNameLabel]
+	if catalogName == "" {
+		return false, fmt.Errorf("McpCatalogNameLabel not found on McpServerImportJob")
+	}
+
+	mcpCatalog := &mcpv1alpha1.McpCatalog{}
+	err := r.Get(ctx, types.NamespacedName{Name: catalogName, Namespace: mcpServerImportJob.Namespace}, mcpCatalog)
+	if err != nil {
+		return false, fmt.Errorf("failed to get McpCatalog: %w", err)
+	}
+	if err := controllerutil.SetControllerReference(mcpCatalog, mcpServerImportJob, r.Scheme); err != nil {
+		return false, fmt.Errorf("failed to set owner reference: %w", err)
+	}
+	log.Info("Set ownership of McpServerImportJob to McpCatalog", "catalogName", catalogName)
+
 	// Update the resource if any fields were initialized
 	if needsUpdate {
 		log.Info("Initializing McpServerImportJob fields",
@@ -87,14 +112,6 @@ func (r *McpServerImportJobReconciler) initializeJob(ctx context.Context, mcpSer
 		err := r.Update(ctx, mcpServerImportJob)
 		if err != nil {
 			log.Error(err, "Failed to update McpServerImportJob spec")
-			return false, err
-		}
-	}
-
-	if needsStatusUpdate {
-		err := r.Status().Update(ctx, mcpServerImportJob)
-		if err != nil {
-			log.Error(err, "Failed to update McpServerImportJob status")
 			return false, err
 		}
 	}
@@ -198,6 +215,7 @@ func (r *McpServerImportJobReconciler) createImportJob(ctx context.Context, mcpS
 			GenerateName: McpServerImporterJobGenerateName,
 			Namespace:    mcpServerImportJob.Namespace,
 			Labels: map[string]string{
+				McpCatalogNameLabel:     catalogName,
 				McpServerImportJobLabel: mcpServerImportJob.Name,
 			},
 		},
