@@ -102,12 +102,12 @@ var _ = Describe("McpServerImportJob Controller", func() {
 				err := k8sClient.List(ctx, jobList, client.InNamespace("default"), client.MatchingLabels(map[string]string{
 					McpServerImportJobLabel: resourceName,
 				}))
-				By(fmt.Sprintf("Debug: Found %d jobs, error: %v", len(jobList.Items), err))
+				fmt.Fprintf(GinkgoWriter, "Debug: Found %d jobs, error: %v", len(jobList.Items), err)
 
 				if len(jobList.Items) > 0 {
 					job := jobList.Items[0]
-					By(fmt.Sprintf("Debug: Job owner references: %v", job.OwnerReferences))
-					By(fmt.Sprintf("Debug: Job name: %s", job.Name))
+					fmt.Fprintf(GinkgoWriter, "Debug: Job owner references: %v", job.OwnerReferences)
+					fmt.Fprintf(GinkgoWriter, "Debug: Job name: %s", job.Name)
 
 					// If Job still exists, manually delete it
 					By("Manually deleting Job since owner reference deletion didn't work")
@@ -169,8 +169,8 @@ var _ = Describe("McpServerImportJob Controller", func() {
 				g.Expect(jobList.Items).To(HaveLen(1))
 
 				job := jobList.Items[0]
-				By(fmt.Sprintf("Debug: Job created with owner references: %v", job.OwnerReferences))
-				By(fmt.Sprintf("Debug: Job name: %s", job.Name))
+				fmt.Fprintf(GinkgoWriter, "Debug: Job created with owner references: %v", job.OwnerReferences)
+				fmt.Fprintf(GinkgoWriter, "Debug: Job name: %s", job.Name)
 				// Verify Job has expected labels
 				g.Expect(job.Labels).To(HaveKeyWithValue(McpServerImportJobLabel, resourceName))
 				g.Expect(job.Labels).To(HaveKeyWithValue(McpCatalogNameLabel, "test-catalog"))
