@@ -59,9 +59,15 @@ var createMcpServerImportJob = func(name, namespace, registryURI, catalogName st
 var _ = Describe("McpServerImportJob Controller", func() {
 	Context("When reconciling a resource", func() {
 		const resourceName = "test-resource"
+		const catalogName = "test-catalog"
+		const catalogNamespace = "default"
 
 		ctx := context.Background()
 
+		catalogNamespacedName := types.NamespacedName{
+			Name:      catalogName,
+			Namespace: catalogNamespace,
+		}
 		typeNamespacedName := types.NamespacedName{
 			Name:      resourceName,
 			Namespace: "default", // TODO(user):Modify as needed
@@ -72,7 +78,7 @@ var _ = Describe("McpServerImportJob Controller", func() {
 			By("creating the custom resource for the Kind McpServerImportJob")
 			err := k8sClient.Get(ctx, typeNamespacedName, mcpserverimportjob)
 			if err != nil && errors.IsNotFound(err) {
-				catalog := createMcpCatalog("test-catalog", "default", "Test catalog", "quay.io/test")
+				catalog := createMcpCatalog(catalogName, catalogNamespace, "Test catalog", "quay.io/test")
 				Expect(k8sClient.Create(ctx, catalog)).To(Succeed())
 
 				resource := createMcpServerImportJob(
@@ -96,18 +102,25 @@ var _ = Describe("McpServerImportJob Controller", func() {
 			By("Cleanup the specific resource instance McpServerImportJob")
 			Expect(k8sClient.Delete(ctx, resource)).To(Succeed())
 
+			By("Cleanup then  McpCatalog  resource")
+			catalog := &mcpv1alpha1.McpCatalog{}
+			err = k8sClient.Get(ctx, catalogNamespacedName, catalog)
+			if err == nil {
+				Expect(k8sClient.Delete(ctx, catalog)).To(Succeed())
+			}
+
 			// Verify that the Job is deleted (due to owner reference) or manually delete it
 			Eventually(func(g Gomega) {
 				jobList := &batchv1.JobList{}
 				err := k8sClient.List(ctx, jobList, client.InNamespace("default"), client.MatchingLabels(map[string]string{
 					McpServerImportJobLabel: resourceName,
 				}))
-				fmt.Fprintf(GinkgoWriter, "Debug: Found %d jobs, error: %v", len(jobList.Items), err)
+				By(fmt.Sprintf("Debug: Found %d jobs, error: %v", len(jobList.Items), err))
 
 				if len(jobList.Items) > 0 {
 					job := jobList.Items[0]
-					fmt.Fprintf(GinkgoWriter, "Debug: Job owner references: %v", job.OwnerReferences)
-					fmt.Fprintf(GinkgoWriter, "Debug: Job name: %s", job.Name)
+					By(fmt.Sprintf("Debug: Job owner references: %v", job.OwnerReferences))
+					By(fmt.Sprintf("Debug: Job name: %s", job.Name))
 
 					// If Job still exists, manually delete it
 					By("Manually deleting Job since owner reference deletion didn't work")
@@ -169,8 +182,8 @@ var _ = Describe("McpServerImportJob Controller", func() {
 				g.Expect(jobList.Items).To(HaveLen(1))
 
 				job := jobList.Items[0]
-				fmt.Fprintf(GinkgoWriter, "Debug: Job created with owner references: %v", job.OwnerReferences)
-				fmt.Fprintf(GinkgoWriter, "Debug: Job name: %s", job.Name)
+				By(fmt.Sprintf("Debug: Job created with owner references: %v", job.OwnerReferences))
+				By(fmt.Sprintf("Debug: Job name: %s", job.Name))
 				// Verify Job has expected labels
 				g.Expect(job.Labels).To(HaveKeyWithValue(McpServerImportJobLabel, resourceName))
 				g.Expect(job.Labels).To(HaveKeyWithValue(McpCatalogNameLabel, "test-catalog"))
@@ -209,7 +222,7 @@ var _ = Describe("McpServerImportJob Controller", func() {
 				}, role)
 				g.Expect(err).NotTo(HaveOccurred())
 				g.Expect(role.Name).To(Equal(McpServerImporterRoleName))
-				g.Expect(role.Rules).To(HaveLen(2))
+				g.Expect(len(role.Rules)).To(Equal(2))
 				g.Expect(role.Rules[0].APIGroups).To(ContainElement("mcp.opendatahub.io"))
 				g.Expect(role.Rules[0].Resources).To(ContainElement("mcpservers"))
 				g.Expect(role.Rules[1].APIGroups).To(ContainElement(""))
