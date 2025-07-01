@@ -27,16 +27,16 @@ import (
 )
 
 const (
-	McpCatalogNameAnnotation      = "mcp.opendatahub.io/mcp-catalog"
-	McpCatalogNamespaceAnnotation = "mcp.opendatahub.io/mcp-catalog-namespace"
+	McpCatalogNameAnnotation      = "mcp.opendatahub.io/mcpcatalog"
+	McpCatalogNamespaceAnnotation = "mcp.opendatahub.io/mcpcatalog-namespace"
 
-	McpRegistryNameAnnotation      = "mcp.opendatahub.io/mcp-registry"
-	McpRegistryNamespaceAnnotation = "mcp.opendatahub.io/mcp-registry-namespace"
+	McpRegistryNameAnnotation      = "mcp.opendatahub.io/mcpregistry"
+	McpRegistryNamespaceAnnotation = "mcp.opendatahub.io/mcpregistry-namespace"
 
-	McpServerNameAnnotation      = "mcp.opendatahub.io/mcp-server"
-	McpServerNamespaceAnnotation = "mcp.opendatahub.io/mcp-server-namespace"
-	McpServerVersionAnnotation   = "mcp.opendatahub.io/mcp-server-version"
-	McpServerPackageAnnotation   = "mcp.opendatahub.io/mcp-server-package"
+	McpServerNameAnnotation      = "mcp.opendatahub.io/mcpserver"
+	McpServerNamespaceAnnotation = "mcp.opendatahub.io/mcpserver-namespace"
+	McpServerVersionAnnotation   = "mcp.opendatahub.io/mcpserver-version"
+	McpServerPackageAnnotation   = "mcp.opendatahub.io/mcpserver-package"
 
 	ServerDescriptionAnnotation     = "mcp.opendatahub.io/description"
 	ServerLongDescriptionAnnotation = "mcp.opendatahub.io/long-description"

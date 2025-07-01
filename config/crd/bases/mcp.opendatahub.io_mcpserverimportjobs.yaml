@@ -40,6 +40,14 @@ spec:
           spec:
             description: McpServerImportJobSpec defines the desired state of McpServerImportJob.
             properties:
+              maxServers:
+                description: Maximum number of servers to import (optional, defaults
+                  to 10)
+                type: integer
+              nameFilter:
+                description: Name filters to apply to the imported servers (optional,
+                  defaults to all)
+                type: string
               registryUri:
                 description: Reference to the MCP Registry to import the servers from
                 type: string
@@ -48,6 +56,20 @@ spec:
             type: object
           status:
             description: McpServerImportJobStatus defines the observed state of McpServerImportJob.
+            properties:
+              configMapName:
+                description: Name of the ConfigMap that contains the import details
+                type: string
+              status:
+                description: Job status
+                enum:
+                - running
+                - completed
+                - failed
+                type: string
+            required:
+            - configMapName
+            - status
             type: object
         type: object
     served: true

@@ -7,7 +7,7 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
   name: io-github-manusa-kubernetes-mcp-server-kubernetes-mcp-server
   annotations:
-    mcp.opendatahub.io/mcp-catalog: red-hat-ecosystem-mcp-catalog
+    mcp.opendatahub.io/mcpcatalog: red-hat-ecosystem-mcp-catalog
 spec:
   server_detail:
     id: 4a097d31-ea39-43aa-9af5-6f19a7676901
@@ -34,7 +34,7 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
   name: io-github-cloudflare-mcp-server-cloudflare
   annotations:
-    mcp.opendatahub.io/mcp-catalog: red-hat-ecosystem-mcp-catalog
+    mcp.opendatahub.io/mcpcatalog: red-hat-ecosystem-mcp-catalog
 spec:
   server_detail:
       id: 2ad7c503-7daa-46c8-9295-8a1ed53271a6

@@ -20,19 +20,33 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
+// +kubebuilder:validation:Enum=running;completed;failed
+type ImportJobStatus string
+
+const (
+	ImportJobRunning   ImportJobStatus = "running"
+	ImportJobCompleted ImportJobStatus = "completed"
+	ImportJobFailed    ImportJobStatus = "failed"
+)
 
 // McpServerImportJobSpec defines the desired state of McpServerImportJob.
 type McpServerImportJobSpec struct {
 	// Reference to the MCP Registry to import the servers from
 	RegistryURI string `json:"registryUri"`
+	// TODO: Add support for authentication
+
+	// Name filters to apply to the imported servers (optional, defaults to all)
+	NameFilter *string `json:"nameFilter,omitempty"`
+	// Maximum number of servers to import (optional, defaults to 10)
+	MaxServers *int `json:"maxServers,omitempty"`
 }
 
 // McpServerImportJobStatus defines the observed state of McpServerImportJob.
 type McpServerImportJobStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// Job status
+	Status ImportJobStatus `json:"status"`
+	// Name of the ConfigMap that contains the import details
+	ConfigMapName string `json:"configMapName"`
 }
 
 // +kubebuilder:object:root=true
