@@ -222,7 +222,7 @@ var _ = Describe("McpServerImportJob Controller", func() {
 				}, role)
 				g.Expect(err).NotTo(HaveOccurred())
 				g.Expect(role.Name).To(Equal(McpServerImporterRoleName))
-				g.Expect(len(role.Rules)).To(Equal(2))
+				g.Expect(role.Rules).To(HaveLen(2))
 				g.Expect(role.Rules[0].APIGroups).To(ContainElement("mcp.opendatahub.io"))
 				g.Expect(role.Rules[0].Resources).To(ContainElement("mcpservers"))
 				g.Expect(role.Rules[1].APIGroups).To(ContainElement(""))
