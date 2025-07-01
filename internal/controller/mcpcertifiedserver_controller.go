@@ -57,10 +57,10 @@ func (r *McpCertifiedServerReconciler) Reconcile(ctx context.Context, req ctrl.R
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	// Get McpCatalog using annotations
-	mcpCatalog, err := GetMcpCatalogFromAnnotations(ctx, r.Client, &mcpCertifiedServer)
+	// Get McpCatalog using labels
+	mcpCatalog, err := GetMcpCatalogFromLabels(ctx, r.Client, &mcpCertifiedServer)
 	if err != nil {
-		return ctrl.Result{}, fmt.Errorf("failed to get McpCatalog from annotations: %w", err)
+		return ctrl.Result{}, fmt.Errorf("failed to get McpCatalog from labels: %w", err)
 	}
 
 	// Set McpCatalog as owner of McpCertifiedServer

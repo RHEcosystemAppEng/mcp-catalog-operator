@@ -21,7 +21,6 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -34,20 +33,17 @@ import (
 
 var _ = Describe("McpServer Controller", func() {
 	// Helper function to create McpServer instances
-	createMcpServer := func(name, namespace, catalogName string, catalogNamespace *string) *mcpv1alpha1.McpServer {
-		annotations := make(map[string]string)
+	createMcpServer := func(name, namespace, catalogName string) *mcpv1alpha1.McpServer {
+		labels := make(map[string]string)
 		if catalogName != "" {
-			annotations[McpCatalogNameAnnotation] = catalogName
-		}
-		if catalogNamespace != nil {
-			annotations[McpCatalogNamespaceAnnotation] = *catalogNamespace
+			labels[McpCatalogNameLabel] = catalogName
 		}
 
 		server := &mcpv1alpha1.McpServer{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:        name,
-				Namespace:   namespace,
-				Annotations: annotations,
+				Name:      name,
+				Namespace: namespace,
+				Labels:    labels,
 			},
 			Spec: mcpv1alpha1.McpServerSpec{
 				ServerDetail: mcpv1alpha1.ServerDetail{
@@ -103,7 +99,7 @@ var _ = Describe("McpServer Controller", func() {
 			g.Expect(readyCondition.Message).To(Equal(expectedMessage))
 
 			if expectedStatus == metav1.ConditionTrue {
-				catalogName := updatedServer.GetAnnotations()[McpCatalogNameAnnotation]
+				catalogName := updatedServer.GetLabels()[McpCatalogNameLabel]
 				g.Expect(updatedServer.OwnerReferences).To(HaveLen(1))
 				g.Expect(updatedServer.OwnerReferences[0].Kind).To(Equal("McpCatalog"))
 				g.Expect(updatedServer.OwnerReferences[0].Name).To(Equal(catalogName))
@@ -143,7 +139,7 @@ var _ = Describe("McpServer Controller", func() {
 			Expect(k8sClient.Create(ctx, catalog)).To(Succeed())
 
 			By("creating the McpServer resource")
-			server := createMcpServer(resourceName, "default", catalogName, nil)
+			server := createMcpServer(resourceName, "default", catalogName)
 			Expect(k8sClient.Create(ctx, server)).To(Succeed())
 		})
 
@@ -170,7 +166,7 @@ var _ = Describe("McpServer Controller", func() {
 
 		BeforeEach(func() {
 			By("creating the McpServer resource with non-existent catalog reference")
-			server := createMcpServer(resourceName, "default", catalogName, nil)
+			server := createMcpServer(resourceName, "default", catalogName)
 			Expect(k8sClient.Create(ctx, server)).To(Succeed())
 		})
 
@@ -180,57 +176,6 @@ var _ = Describe("McpServer Controller", func() {
 
 		It("should set Ready condition to False when catalog does not exist", func() {
 			reconcileAndValidateStatus(typeNamespacedName, metav1.ConditionFalse, ConditionReasonValidationFailed, ValidationMessageCatalogNotFound)
-		})
-	})
-
-	Context("When reconciling a resource with catalog in different namespace", func() {
-		const resourceName = "test-server-cross-namespace"
-		const catalogName = "test-catalog-cross-namespace"
-		catalogNamespace := "catalog-namespace"
-
-		ctx := context.Background()
-
-		typeNamespacedName := types.NamespacedName{
-			Name:      resourceName,
-			Namespace: "default",
-		}
-		catalogNamespacedName := types.NamespacedName{
-			Name:      catalogName,
-			Namespace: catalogNamespace,
-		}
-
-		BeforeEach(func() {
-			By("creating the referenced McpCatalog in different namespace")
-			// Create the namespace first
-			namespace := &corev1.Namespace{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: catalogNamespace,
-				},
-			}
-			Expect(k8sClient.Create(ctx, namespace)).To(Succeed())
-
-			catalog := createMcpCatalog(catalogName, catalogNamespace, "Test catalog in different namespace", "test-registry.example.com")
-			Expect(k8sClient.Create(ctx, catalog)).To(Succeed())
-
-			By("creating the McpServer resource with cross-namespace catalog reference")
-			server := createMcpServer(resourceName, "default", catalogName, &catalogNamespace)
-			Expect(k8sClient.Create(ctx, server)).To(Succeed())
-		})
-
-		AfterEach(func() {
-			cleanupResource("McpServer", typeNamespacedName, &mcpv1alpha1.McpServer{})
-			cleanupResource("McpCatalog", catalogNamespacedName, &mcpv1alpha1.McpCatalog{})
-
-			By("Cleanup the namespace")
-			namespace := &corev1.Namespace{}
-			err := k8sClient.Get(ctx, types.NamespacedName{Name: catalogNamespace}, namespace)
-			if err == nil {
-				Expect(k8sClient.Delete(ctx, namespace)).To(Succeed())
-			}
-		})
-
-		It("should fail to reconcile with catalog in different namespace", func() {
-			reconcileAndValidateStatus(typeNamespacedName, metav1.ConditionFalse, ConditionReasonCrossNamespaces, ValidationMessageCrossNamespaces)
 		})
 	})
 })

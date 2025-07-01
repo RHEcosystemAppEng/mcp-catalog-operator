@@ -74,31 +74,28 @@ func withRemoteUri() func(*mcpv1alpha1.McpCertifiedServerSpec) {
 	}
 }
 
-func createMcpCertifiedServer(name string, spec mcpv1alpha1.McpCertifiedServerSpec, catalogName, catalogNamespace string) *mcpv1alpha1.McpCertifiedServer {
-	annotations := make(map[string]string)
+func createMcpCertifiedServer(name string, spec mcpv1alpha1.McpCertifiedServerSpec, catalogName string) *mcpv1alpha1.McpCertifiedServer {
+	labels := make(map[string]string)
 	if catalogName != "" {
-		annotations[McpCatalogNameAnnotation] = catalogName
-	}
-	if catalogNamespace != "" {
-		annotations[McpCatalogNamespaceAnnotation] = catalogNamespace
+		labels[McpCatalogNameLabel] = catalogName
 	}
 
 	return &mcpv1alpha1.McpCertifiedServer{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        name,
-			Namespace:   "default",
-			Annotations: annotations,
+			Name:      name,
+			Namespace: "default",
+			Labels:    labels,
 		},
 		Spec: spec,
 	}
 }
 
-func createMcpCertifiedServerWithoutAnnotations(name, namespace string, spec mcpv1alpha1.McpCertifiedServerSpec) *mcpv1alpha1.McpCertifiedServer {
+func createMcpCertifiedServerWithoutLabels(name, namespace string, spec mcpv1alpha1.McpCertifiedServerSpec) *mcpv1alpha1.McpCertifiedServer {
 	return &mcpv1alpha1.McpCertifiedServer{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        name,
-			Namespace:   namespace,
-			Annotations: nil,
+			Name:      name,
+			Namespace: namespace,
+			Labels:    nil,
 		},
 		Spec: spec,
 	}
@@ -160,7 +157,7 @@ var _ = Describe("McpCertifiedServer Controller", func() {
 				}
 
 				spec := createMcpCertifiedServerSpec(specOptions...)
-				resource := createMcpCertifiedServer(resourceName, spec, "", "")
+				resource := createMcpCertifiedServer(resourceName, spec, "")
 
 				By("creating the custom resource for the Kind McpCertifiedServer")
 				createAndExpectResource(ctx, resource, shouldCreateSucceed)
@@ -210,7 +207,7 @@ var _ = Describe("McpCertifiedServer Controller", func() {
 
 			By("creating the custom resource for the Kind McpCertifiedServer with no McpRegistry")
 			spec := createMcpCertifiedServerSpec(withContainerImage())
-			resource := createMcpCertifiedServer(resourceName, spec, "", "")
+			resource := createMcpCertifiedServer(resourceName, spec, "")
 
 			Expect(k8sClient.Create(ctx, resource)).To(Succeed())
 			defer cleanupResource(ctx, typeNamespacedName)
@@ -248,9 +245,9 @@ var _ = Describe("McpCertifiedServer Controller", func() {
 			createAndExpectMcpCatalog(ctx, catalog, true)
 			defer cleanupMcpCatalog(ctx, catalogNamespacedName)
 
-			By("creating the McpCertifiedServer with catalog annotations")
+			By("creating the McpCertifiedServer with catalog labels")
 			spec := createMcpCertifiedServerSpec(withContainerImage())
-			resource := createMcpCertifiedServer(resourceName, spec, catalogName, catalogNamespace)
+			resource := createMcpCertifiedServer(resourceName, spec, catalogName)
 
 			Expect(k8sClient.Create(ctx, resource)).To(Succeed())
 			defer cleanupResource(ctx, resourceNamespacedName)
@@ -279,9 +276,9 @@ var _ = Describe("McpCertifiedServer Controller", func() {
 				Namespace: namespace,
 			}
 
-			By("creating the McpCertifiedServer with non-existent catalog annotations")
+			By("creating the McpCertifiedServer with non-existent catalog labels")
 			spec := createMcpCertifiedServerSpec(withContainerImage())
-			resource := createMcpCertifiedServer(resourceName, spec, "non-existent-catalog", namespace)
+			resource := createMcpCertifiedServer(resourceName, spec, "non-existent-catalog")
 
 			Expect(k8sClient.Create(ctx, resource)).To(Succeed())
 			defer cleanupResource(ctx, resourceNamespacedName)
@@ -304,16 +301,16 @@ var _ = Describe("McpCertifiedServer Controller", func() {
 			Expect(hasOwnerReference(updatedResource, "non-existent-catalog", "McpCatalog")).To(BeFalse())
 		})
 
-		It("should not set owner reference and fail reconciliation when catalog annotation is missing", func() {
-			resourceName := "test-no-catalog-annotation"
+		It("should not set owner reference and fail reconciliation when catalog label is missing", func() {
+			resourceName := "test-no-catalog-label"
 			resourceNamespacedName := types.NamespacedName{
 				Name:      resourceName,
 				Namespace: namespace,
 			}
 
-			By("creating the McpCertifiedServer without catalog annotations")
+			By("creating the McpCertifiedServer without catalog labels")
 			spec := createMcpCertifiedServerSpec(withContainerImage())
-			resource := createMcpCertifiedServerWithoutAnnotations(resourceName, namespace, spec)
+			resource := createMcpCertifiedServerWithoutLabels(resourceName, namespace, spec)
 
 			Expect(k8sClient.Create(ctx, resource)).To(Succeed())
 			defer cleanupResource(ctx, resourceNamespacedName)
@@ -328,7 +325,7 @@ var _ = Describe("McpCertifiedServer Controller", func() {
 				NamespacedName: resourceNamespacedName,
 			})
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("no annotations found on object"))
+			Expect(err.Error()).To(ContainSubstring("no labels found on object"))
 
 			By("Verifying that no owner references are set")
 			updatedResource := &mcpv1alpha1.McpCertifiedServer{}

@@ -5,8 +5,7 @@ metadata:
   labels:
     app.kubernetes.io/name: mcp-registry-operator
     app.kubernetes.io/managed-by: kustomize
+    mcp.opendatahub.io/mcpcatalog: red-hat-ecosystem-mcp-catalog
   name: mcpserverimportjob-sample
-  annotations:
-    mcp.opendatahub.io/mcp-catalog: red-hat-ecosystem-mcp-catalog
 spec:
-  registryUri: 'http://mcp-registry.com'
+  registryUri: 'http://mcp-registry.mcp-registry-ref.svc.cluster.local:8080/v0'

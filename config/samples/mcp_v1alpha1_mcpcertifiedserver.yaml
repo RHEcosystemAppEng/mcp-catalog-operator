@@ -5,11 +5,11 @@ metadata:
   labels:
     app.kubernetes.io/name: mcp-registry-operator
     app.kubernetes.io/managed-by: kustomize
+    mcp.opendatahub.io/mcpcatalog: red-hat-ecosystem-mcp-catalog
+    mcp.opendatahub.io/mcpserver: io-github-manusa-kubernetes-mcp-server-kubernetes-mcp-server
   annotations:
-    mcp.opendatahub.io/mcp-catalog: red-hat-ecosystem-mcp-catalog
-    mcp.opendatahub.io/mcp-server: io-github-manusa-kubernetes-mcp-server-kubernetes-mcp-server
-    mcp.opendatahub.io/mcp-server-version: 0.0.1-seed
-    mcp.opendatahub.io/mcp-server-package: manusa/kubernetes-mcp-server
+    mcp.opendatahub.io/mcpserver-version: 0.0.1-seed
+    mcp.opendatahub.io/mcpserver-package: manusa/kubernetes-mcp-server
     mcp.opendatahub.io/description: >
       Model Context Protocol (MCP) server for Kubernetes and OpenShift
     mcp.opendatahub.io/long-description: >
@@ -63,10 +63,10 @@ metadata:
   labels:
     app.kubernetes.io/name: mcp-registry-operator
     app.kubernetes.io/managed-by: kustomize
+    mcp.opendatahub.io/mcpcatalog: red-hat-ecosystem-mcp-catalog
+    mcp.opendatahub.io/mcpserver: io-github-cloudflare-mcp-server-cloudflare
   annotations:
-    mcp.opendatahub.io/mcp-catalog: red-hat-ecosystem-mcp-catalog
-    mcp.opendatahub.io/mcp-server: io-github-cloudflare-mcp-server-cloudflare
-    mcp.opendatahub.io/mcp-server-version: 0.0.1-seed
+    mcp.opendatahub.io/mcpserver-version: 0.0.1-seed
     mcp.opendatahub.io/description: ''
     mcp.opendatahub.io/long-description: >
       The Cloudflare MCP Server README introduces the **Model Context Protocol (MCP)**, a standard for managing context between Large Language Models (LLMs) and external systems.

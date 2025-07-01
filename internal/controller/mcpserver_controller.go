@@ -61,7 +61,7 @@ func (r *McpServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	}
 
 	// Get McpCatalog using annotations
-	mcpCatalog, err := GetMcpCatalogFromAnnotations(ctx, r.Client, mcpServer)
+	mcpCatalog, err := GetMcpCatalogFromLabels(ctx, r.Client, mcpServer)
 	catalogExists := err == nil
 
 	var readyCondition metav1.Condition
