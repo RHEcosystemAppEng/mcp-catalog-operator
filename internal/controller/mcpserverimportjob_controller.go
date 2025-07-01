@@ -47,9 +47,11 @@ func (r *McpServerImportJobReconciler) initializeJob(ctx context.Context, mcpSer
 
 	// Initialize missing fields in spec
 	needsUpdate := false
+	needsStatusUpdate := false
 	needsStart := false
 	defaultNameFilter := ""
 	defaultMaxServers := DefaultMaxServers
+	defaultConfigMapName := ""
 
 	// Initialize NameFilter to empty string if not set
 	if mcpServerImportJob.Spec.NameFilter == nil {
@@ -66,14 +68,14 @@ func (r *McpServerImportJobReconciler) initializeJob(ctx context.Context, mcpSer
 	// Initialize status if not set
 	if mcpServerImportJob.Status.Status == "" {
 		mcpServerImportJob.Status.Status = mcpv1alpha1.ImportJobRunning
-		needsUpdate = true
+		needsStatusUpdate = true
 		needsStart = true
 	}
 
 	// Initialize ConfigMapName to empty string if not set
-	if mcpServerImportJob.Status.ConfigMapName == "" {
-		mcpServerImportJob.Status.ConfigMapName = ""
-		needsUpdate = true
+	if mcpServerImportJob.Status.ConfigMapName == nil {
+		mcpServerImportJob.Status.ConfigMapName = &defaultConfigMapName
+		needsStatusUpdate = true
 	}
 
 	// Update the resource if any fields were initialized
@@ -82,19 +84,18 @@ func (r *McpServerImportJobReconciler) initializeJob(ctx context.Context, mcpSer
 			"name", mcpServerImportJob.Name,
 			"namespace", mcpServerImportJob.Namespace)
 
+		err := r.Update(ctx, mcpServerImportJob)
+		if err != nil {
+			log.Error(err, "Failed to update McpServerImportJob spec")
+			return false, err
+		}
+	}
+
+	if needsStatusUpdate {
 		err := r.Status().Update(ctx, mcpServerImportJob)
 		if err != nil {
 			log.Error(err, "Failed to update McpServerImportJob status")
 			return false, err
-		}
-
-		// Also update the spec if it was modified
-		if mcpServerImportJob.Spec.NameFilter == nil || mcpServerImportJob.Spec.MaxServers == nil {
-			err = r.Update(ctx, mcpServerImportJob)
-			if err != nil {
-				log.Error(err, "Failed to update McpServerImportJob spec")
-				return false, err
-			}
 		}
 	}
 
@@ -365,7 +366,7 @@ func (r *McpServerImportJobReconciler) checkJobStatus(ctx context.Context, mcpSe
 
 		// Update the McpServerImportJob status
 		mcpServerImportJob.Status.Status = newStatus
-		mcpServerImportJob.Status.ConfigMapName = configMapName
+		mcpServerImportJob.Status.ConfigMapName = &configMapName
 
 		err = r.Status().Update(ctx, mcpServerImportJob)
 		if err != nil {

@@ -49,8 +49,8 @@ var createMcpServerImportJob = func(name, namespace, registryURI, catalogName st
 			MaxServers:  maxServers,
 		},
 		Status: mcpv1alpha1.McpServerImportJobStatus{
-			Status:        "", // Will be initialized by the controller
-			ConfigMapName: "", // Will be set by the controller
+			Status:        "",  // Will be initialized by the controller
+			ConfigMapName: nil, // Will be set by the controller
 		},
 	}
 }

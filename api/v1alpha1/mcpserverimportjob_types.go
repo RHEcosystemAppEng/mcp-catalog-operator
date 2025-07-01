@@ -46,7 +46,7 @@ type McpServerImportJobStatus struct {
 	// Job status
 	Status ImportJobStatus `json:"status"`
 	// Name of the ConfigMap that contains the import details
-	ConfigMapName string `json:"configMapName"`
+	ConfigMapName *string `json:"configMapName,omitempty"`
 }
 
 // +kubebuilder:object:root=true
