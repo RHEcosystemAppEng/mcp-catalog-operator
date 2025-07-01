@@ -30,6 +30,31 @@ import (
 	mcpv1alpha1 "github.com/RHEcosystemAppEng/mcp-registry-operator/api/v1alpha1"
 )
 
+// Helper function to create McpServerImportJob instances
+var createMcpServerImportJob = func(name, namespace, registryURI, catalogName string, nameFilter *string, maxServers *int) *mcpv1alpha1.McpServerImportJob {
+	labels := make(map[string]string)
+	if catalogName != "" {
+		labels[McpCatalogNameLabel] = catalogName
+	}
+
+	return &mcpv1alpha1.McpServerImportJob{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+			Labels:    labels,
+		},
+		Spec: mcpv1alpha1.McpServerImportJobSpec{
+			RegistryURI: registryURI,
+			NameFilter:  nameFilter,
+			MaxServers:  maxServers,
+		},
+		Status: mcpv1alpha1.McpServerImportJobStatus{
+			Status:        "", // Will be initialized by the controller
+			ConfigMapName: "", // Will be set by the controller
+		},
+	}
+}
+
 var _ = Describe("McpServerImportJob Controller", func() {
 	Context("When reconciling a resource", func() {
 		const resourceName = "test-resource"
@@ -46,15 +71,14 @@ var _ = Describe("McpServerImportJob Controller", func() {
 			By("creating the custom resource for the Kind McpServerImportJob")
 			err := k8sClient.Get(ctx, typeNamespacedName, mcpserverimportjob)
 			if err != nil && errors.IsNotFound(err) {
-				resource := &mcpv1alpha1.McpServerImportJob{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      resourceName,
-						Namespace: "default",
-					},
-					Spec: mcpv1alpha1.McpServerImportJobSpec{
-						RegistryURI: "http://mcp-registry.com",
-					},
-				}
+				resource := createMcpServerImportJob(
+					resourceName,
+					"default",
+					"http://mcp-registry.com",
+					"test-catalog",
+					nil, // nameFilter
+					nil, // maxServers
+				)
 				Expect(k8sClient.Create(ctx, resource)).To(Succeed())
 			}
 		})
