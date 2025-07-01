@@ -4,6 +4,7 @@ metadata:
   labels:
     app.kubernetes.io/name: mcp-registry-operator
     app.kubernetes.io/managed-by: kustomize
+    mcp.opendatahub.io/mcpregistry: mcp-registry
   name: local-kubernetes-mcpserver
 spec:
   registryRef:
@@ -21,6 +22,7 @@ metadata:
   labels:
     app.kubernetes.io/name: mcp-registry-operator
     app.kubernetes.io/managed-by: kustomize
+    mcp.opendatahub.io/mcpregistry: mcp-registry
   name: ext-git-server
 spec:
   registryRef:
@@ -37,6 +39,7 @@ metadata:
   labels:
     app.kubernetes.io/name: mcp-registry-operator
     app.kubernetes.io/managed-by: kustomize
+    mcp.opendatahub.io/mcpregistry: mcp-registry
   name: ext-mcpserver
 spec:
   registryRef:

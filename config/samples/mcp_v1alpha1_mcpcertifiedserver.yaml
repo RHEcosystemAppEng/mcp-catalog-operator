@@ -5,9 +5,9 @@ metadata:
   labels:
     app.kubernetes.io/name: mcp-registry-operator
     app.kubernetes.io/managed-by: kustomize
-  annotations:
     mcp.opendatahub.io/mcpcatalog: red-hat-ecosystem-mcp-catalog
     mcp.opendatahub.io/mcpserver: io-github-manusa-kubernetes-mcp-server-kubernetes-mcp-server
+  annotations:
     mcp.opendatahub.io/mcpserver-version: 0.0.1-seed
     mcp.opendatahub.io/mcpserver-package: manusa/kubernetes-mcp-server
     mcp.opendatahub.io/description: >
@@ -63,9 +63,9 @@ metadata:
   labels:
     app.kubernetes.io/name: mcp-registry-operator
     app.kubernetes.io/managed-by: kustomize
-  annotations:
     mcp.opendatahub.io/mcpcatalog: red-hat-ecosystem-mcp-catalog
     mcp.opendatahub.io/mcpserver: io-github-cloudflare-mcp-server-cloudflare
+  annotations:
     mcp.opendatahub.io/mcpserver-version: 0.0.1-seed
     mcp.opendatahub.io/description: ''
     mcp.opendatahub.io/long-description: >

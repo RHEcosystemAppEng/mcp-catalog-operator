@@ -8,4 +8,6 @@ metadata:
 spec:
   catalogs:
     - name: red-hat-ecosystem-mcp-catalog
+      # If not specified, the namespace will be the same as the McpRegistry
+      # namespace: default
   description: MCP registry for the tenant

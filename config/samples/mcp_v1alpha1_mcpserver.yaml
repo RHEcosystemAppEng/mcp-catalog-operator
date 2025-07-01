@@ -5,9 +5,8 @@ metadata:
   labels:
     app.kubernetes.io/name: mcp-registry-operator
     app.kubernetes.io/managed-by: kustomize
-  name: io-github-manusa-kubernetes-mcp-server-kubernetes-mcp-server
-  annotations:
     mcp.opendatahub.io/mcpcatalog: red-hat-ecosystem-mcp-catalog
+  name: io-github-manusa-kubernetes-mcp-server-kubernetes-mcp-server
 spec:
   server_detail:
     id: 4a097d31-ea39-43aa-9af5-6f19a7676901

@@ -116,7 +116,7 @@ var _ = Describe("McpServerImportJob Controller", func() {
 				}
 
 				g.Expect(err).NotTo(HaveOccurred())
-				g.Expect(len(jobList.Items)).To(Equal(0))
+				g.Expect(jobList.Items).To(BeEmpty())
 			}, 10*time.Second, 100*time.Millisecond).Should(Succeed())
 
 			// Verify that SA, Role, and RoleBinding remain (they should not be deleted)
@@ -166,7 +166,7 @@ var _ = Describe("McpServerImportJob Controller", func() {
 					McpServerImportJobLabel: resourceName,
 				}))
 				g.Expect(err).NotTo(HaveOccurred())
-				g.Expect(len(jobList.Items)).To(Equal(1))
+				g.Expect(jobList.Items).To(HaveLen(1))
 
 				job := jobList.Items[0]
 				By(fmt.Sprintf("Debug: Job created with owner references: %v", job.OwnerReferences))
@@ -177,7 +177,7 @@ var _ = Describe("McpServerImportJob Controller", func() {
 
 				// Verify Job spec
 				g.Expect(job.Spec.Template.Spec.ServiceAccountName).To(Equal(McpServerImporterServiceAccountName))
-				g.Expect(len(job.Spec.Template.Spec.Containers)).To(Equal(1))
+				g.Expect(job.Spec.Template.Spec.Containers).To(HaveLen(1))
 				g.Expect(job.Spec.Template.Spec.Containers[0].Name).To(Equal(McpServerImporterContainerName))
 				g.Expect(job.Spec.Template.Spec.Containers[0].Image).To(Equal(McpServerImporterImage))
 
@@ -209,7 +209,7 @@ var _ = Describe("McpServerImportJob Controller", func() {
 				}, role)
 				g.Expect(err).NotTo(HaveOccurred())
 				g.Expect(role.Name).To(Equal(McpServerImporterRoleName))
-				g.Expect(len(role.Rules)).To(Equal(2))
+				g.Expect(role.Rules).To(HaveLen(2))
 				g.Expect(role.Rules[0].APIGroups).To(ContainElement("mcp.opendatahub.io"))
 				g.Expect(role.Rules[0].Resources).To(ContainElement("mcpservers"))
 				g.Expect(role.Rules[1].APIGroups).To(ContainElement(""))
@@ -225,7 +225,7 @@ var _ = Describe("McpServerImportJob Controller", func() {
 				}, roleBinding)
 				g.Expect(err).NotTo(HaveOccurred())
 				g.Expect(roleBinding.Name).To(Equal(McpServerImporterRoleBindingName))
-				g.Expect(len(roleBinding.Subjects)).To(Equal(1))
+				g.Expect(roleBinding.Subjects).To(HaveLen(1))
 				g.Expect(roleBinding.Subjects[0].Name).To(Equal(McpServerImporterServiceAccountName))
 				g.Expect(roleBinding.RoleRef.Name).To(Equal(McpServerImporterRoleName))
 			}, 5*time.Second, 100*time.Millisecond).Should(Succeed())
