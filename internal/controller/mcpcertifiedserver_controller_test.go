@@ -77,7 +77,7 @@ func withRemoteUri() func(*mcpv1alpha1.McpCertifiedServerSpec) {
 func createMcpCertifiedServer(name string, spec mcpv1alpha1.McpCertifiedServerSpec, catalogName string) *mcpv1alpha1.McpCertifiedServer {
 	labels := make(map[string]string)
 	if catalogName != "" {
-		labels[McpCatalogNameLabel] = catalogName
+		labels[McpCatalogLabel] = catalogName
 	}
 
 	return &mcpv1alpha1.McpCertifiedServer{

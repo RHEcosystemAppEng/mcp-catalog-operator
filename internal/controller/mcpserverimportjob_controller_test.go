@@ -39,7 +39,7 @@ import (
 var createMcpServerImportJob = func(name, namespace, registryURI, catalogName string, nameFilter *string, maxServers *int) *mcpv1alpha1.McpServerImportJob {
 	labels := make(map[string]string)
 	if catalogName != "" {
-		labels[McpCatalogNameLabel] = catalogName
+		labels[McpCatalogLabel] = catalogName
 	}
 
 	return &mcpv1alpha1.McpServerImportJob{
@@ -186,7 +186,7 @@ var _ = Describe("McpServerImportJob Controller", func() {
 				By(fmt.Sprintf("Debug: Job name: %s", job.Name))
 				// Verify Job has expected labels
 				g.Expect(job.Labels).To(HaveKeyWithValue(McpServerImportJobLabel, resourceName))
-				g.Expect(job.Labels).To(HaveKeyWithValue(McpCatalogNameLabel, "test-catalog"))
+				g.Expect(job.Labels).To(HaveKeyWithValue(McpCatalogLabel, "test-catalog"))
 
 				// Verify Job spec
 				g.Expect(job.Spec.Template.Spec.ServiceAccountName).To(Equal(McpServerImporterServiceAccountName))

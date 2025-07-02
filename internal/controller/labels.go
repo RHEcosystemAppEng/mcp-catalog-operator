@@ -10,7 +10,9 @@ import (
 )
 
 const (
-	McpCatalogNameLabel     = "mcp.opendatahub.io/mcpcatalog"
+	McpCatalogLabel         = "mcp.opendatahub.io/mcpcatalog"
+	McpRegistryLabel        = "mcp.opendatahub.io/mcpregistry"
+	McpServerNameLabel      = "mcp.opendatahub.io/mcpserver"
 	McpServerImportJobLabel = "mcp.opendatahub.io/mcpserverimportjob"
 )
 
@@ -23,9 +25,9 @@ func GetMcpCatalogFromLabels(ctx context.Context, c client.Client, obj client.Ob
 		return nil, fmt.Errorf("no labels found on object")
 	}
 
-	catalogName, exists := labels[McpCatalogNameLabel]
+	catalogName, exists := labels[McpCatalogLabel]
 	if !exists || catalogName == "" {
-		return nil, fmt.Errorf("label %s is required and cannot be empty", McpCatalogNameLabel)
+		return nil, fmt.Errorf("label %s is required and cannot be empty", McpCatalogLabel)
 	}
 
 	catalogNamespace := obj.GetNamespace()

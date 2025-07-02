@@ -88,9 +88,9 @@ func (r *McpServerImportJobReconciler) initializeJob(ctx context.Context, mcpSer
 		}
 	}
 
-	catalogName := mcpServerImportJob.Labels[McpCatalogNameLabel]
+	catalogName := mcpServerImportJob.Labels[McpCatalogLabel]
 	if catalogName == "" {
-		return false, fmt.Errorf("McpCatalogNameLabel not found on McpServerImportJob")
+		return false, fmt.Errorf("McpCatalogLabel not found on McpServerImportJob")
 	}
 
 	mcpCatalog := &mcpv1alpha1.McpCatalog{}
@@ -199,9 +199,9 @@ func (r *McpServerImportJobReconciler) createImportJob(ctx context.Context, mcpS
 	log := logf.FromContext(ctx)
 
 	// Get the catalog name from labels
-	catalogName := mcpServerImportJob.Labels[McpCatalogNameLabel]
+	catalogName := mcpServerImportJob.Labels[McpCatalogLabel]
 	if catalogName == "" {
-		return fmt.Errorf("McpCatalogNameLabel not found on McpServerImportJob")
+		return fmt.Errorf("McpCatalogLabel not found on McpServerImportJob")
 	}
 
 	// Convert MaxServers to string
@@ -215,7 +215,7 @@ func (r *McpServerImportJobReconciler) createImportJob(ctx context.Context, mcpS
 			GenerateName: McpServerImporterJobGenerateName,
 			Namespace:    mcpServerImportJob.Namespace,
 			Labels: map[string]string{
-				McpCatalogNameLabel:     catalogName,
+				McpCatalogLabel:         catalogName,
 				McpServerImportJobLabel: mcpServerImportJob.Name,
 			},
 		},

@@ -17,10 +17,6 @@ limitations under the License.
 package controller
 
 const (
-	McpRegistryNameAnnotation      = "mcp.opendatahub.io/mcpregistry"
-	McpRegistryNamespaceAnnotation = "mcp.opendatahub.io/mcpregistry-namespace"
-	McpServerNameLabel             = "mcp.opendatahub.io/mcpserver"
-
 	McpServerVersionAnnotation = "mcp.opendatahub.io/mcpserver-version"
 	McpServerPackageAnnotation = "mcp.opendatahub.io/mcpserver-package"
 
