@@ -36,7 +36,7 @@ var _ = Describe("McpServer Controller", func() {
 	createMcpServer := func(name, namespace, catalogName string) *mcpv1alpha1.McpServer {
 		labels := make(map[string]string)
 		if catalogName != "" {
-			labels[McpCatalogNameLabel] = catalogName
+			labels[McpCatalogLabel] = catalogName
 		}
 
 		server := &mcpv1alpha1.McpServer{
@@ -99,7 +99,7 @@ var _ = Describe("McpServer Controller", func() {
 			g.Expect(readyCondition.Message).To(Equal(expectedMessage))
 
 			if expectedStatus == metav1.ConditionTrue {
-				catalogName := updatedServer.GetLabels()[McpCatalogNameLabel]
+				catalogName := updatedServer.GetLabels()[McpCatalogLabel]
 				g.Expect(updatedServer.OwnerReferences).To(HaveLen(1))
 				g.Expect(updatedServer.OwnerReferences[0].Kind).To(Equal("McpCatalog"))
 				g.Expect(updatedServer.OwnerReferences[0].Name).To(Equal(catalogName))
