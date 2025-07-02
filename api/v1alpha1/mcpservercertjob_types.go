@@ -31,6 +31,10 @@ type McpServerCertJobSpec struct {
 
 // McpServerCertJobStatus defines the observed state of McpServerCertJob.
 type McpServerCertJobStatus struct {
+	// Conditions represent the latest available observations of a McpServerCertJob's current state.
+	// +listType=map
+	// +listMapKey=type
+	Conditions []metav1.Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type"`
 }
 
 // +kubebuilder:object:root=true

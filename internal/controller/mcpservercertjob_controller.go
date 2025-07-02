@@ -18,10 +18,16 @@ package controller
 
 import (
 	"context"
+	"fmt"
+	"time"
 
+	"github.com/go-logr/logr"
+	"k8s.io/apimachinery/pkg/api/meta"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
 	mcpv1alpha1 "github.com/RHEcosystemAppEng/mcp-registry-operator/api/v1alpha1"
@@ -47,11 +53,75 @@ type McpServerCertJobReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.20.4/pkg/reconcile
 func (r *McpServerCertJobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = logf.FromContext(ctx)
+	log := logf.FromContext(ctx)
 
-	// TODO(user): your logic here
+	mcpServerCertJob := &mcpv1alpha1.McpServerCertJob{}
+	err := r.Get(ctx, req.NamespacedName, mcpServerCertJob)
+	if err != nil {
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	err = r.initializeOwnershipAndReadiness(ctx, mcpServerCertJob, log)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
 
 	return ctrl.Result{}, nil
+}
+
+// initializeOwnershipAndReadiness sets the owner reference to the referenced McpCatalog and sets the Ready condition accordingly.
+func (r *McpServerCertJobReconciler) initializeOwnershipAndReadiness(ctx context.Context, mcpServerCertJob *mcpv1alpha1.McpServerCertJob, log logr.Logger) error {
+	now := metav1.NewTime(time.Now())
+	mcpCatalog, err := GetMcpCatalogFromLabels(ctx, r.Client, mcpServerCertJob)
+	catalogExists := err == nil
+
+	var readyCondition metav1.Condition
+	if catalogExists {
+		log.Info("Referenced catalog found", "catalog", mcpCatalog.Name, "namespace", mcpCatalog.Namespace)
+		if mcpCatalog.Namespace != mcpServerCertJob.Namespace {
+			readyCondition = metav1.Condition{
+				Type:               ConditionTypeReady,
+				Status:             metav1.ConditionFalse,
+				Reason:             ConditionReasonCrossNamespaces,
+				Message:            ValidationMessageCrossNamespaces,
+				LastTransitionTime: now,
+				ObservedGeneration: mcpServerCertJob.Generation,
+			}
+		} else {
+			readyCondition = metav1.Condition{
+				Type:               ConditionTypeReady,
+				Status:             metav1.ConditionTrue,
+				Reason:             ConditionReasonValidationSucceeded,
+				Message:            ValidationMessageServerSuccess,
+				LastTransitionTime: now,
+				ObservedGeneration: mcpServerCertJob.Generation,
+			}
+			if err := controllerutil.SetControllerReference(mcpCatalog, mcpServerCertJob, r.Scheme); err != nil {
+				return fmt.Errorf("failed to set owner reference: %w", err)
+			}
+			if err := r.Update(ctx, mcpServerCertJob); err != nil {
+				return fmt.Errorf("failed to update McpServerCertJob with owner ref: %w", err)
+			}
+		}
+	} else {
+		readyCondition = metav1.Condition{
+			Type:               ConditionTypeReady,
+			Status:             metav1.ConditionFalse,
+			Reason:             ConditionReasonValidationFailed,
+			Message:            ValidationMessageCatalogNotFound,
+			LastTransitionTime: now,
+			ObservedGeneration: mcpServerCertJob.Generation,
+		}
+		log.Info("Referenced catalog NOT found", "error", err)
+	}
+
+	meta.SetStatusCondition(&mcpServerCertJob.Status.Conditions, readyCondition)
+	if err := r.Status().Update(ctx, mcpServerCertJob); err != nil {
+		log.Error(err, "Failed to update McpServerCertJob status")
+		return err
+	}
+
+	return nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
