@@ -22,6 +22,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
@@ -79,6 +80,100 @@ var _ = Describe("McpServerCertJob Controller", func() {
 			Expect(err).NotTo(HaveOccurred())
 			// TODO(user): Add more specific assertions depending on your controller's reconciliation logic.
 			// Example: If you expect a certain status condition after reconciliation, verify it here.
+		})
+
+		It("should set Ready condition to True and owner reference when catalog exists", func() {
+			const resourceName = "test-job-with-catalog"
+			const catalogName = "test-catalog"
+			ctx := context.Background()
+			namespacedName := types.NamespacedName{Name: resourceName, Namespace: "default"}
+
+			// Create the referenced McpCatalog
+			catalog := &mcpv1alpha1.McpCatalog{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      catalogName,
+					Namespace: "default",
+				},
+				Spec: mcpv1alpha1.McpCatalogSpec{
+					Description:   "desc",
+					ImageRegistry: "quay.io/test",
+				},
+			}
+			Expect(k8sClient.Create(ctx, catalog)).To(Succeed())
+			DeferCleanup(func() {
+				_ = k8sClient.Delete(ctx, catalog)
+			})
+
+			// Create the McpServerCertJob with the catalog label
+			job := &mcpv1alpha1.McpServerCertJob{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      resourceName,
+					Namespace: "default",
+					Labels:    map[string]string{"mcp.opendatahub.io/mcpcatalog": catalogName},
+				},
+			}
+			Expect(k8sClient.Create(ctx, job)).To(Succeed())
+			DeferCleanup(func() {
+				_ = k8sClient.Delete(ctx, job)
+			})
+
+			// Reconcile
+			reconciler := &McpServerCertJobReconciler{Client: k8sClient, Scheme: k8sClient.Scheme()}
+			_, err := reconciler.Reconcile(ctx, reconcile.Request{NamespacedName: namespacedName})
+			Expect(err).NotTo(HaveOccurred())
+
+			// Check Ready condition and owner reference
+			Eventually(func(g Gomega) {
+				updated := &mcpv1alpha1.McpServerCertJob{}
+				err := k8sClient.Get(ctx, namespacedName, updated)
+				g.Expect(err).NotTo(HaveOccurred())
+				cond := meta.FindStatusCondition(updated.Status.Conditions, "Ready")
+				g.Expect(cond).NotTo(BeNil())
+				g.Expect(cond.Status).To(Equal(metav1.ConditionTrue))
+				g.Expect(cond.Reason).To(Equal("ValidationSucceeded"))
+				g.Expect(cond.Message).To(Equal("McpServer spec is valid"))
+				g.Expect(updated.OwnerReferences).To(HaveLen(1))
+				g.Expect(updated.OwnerReferences[0].Kind).To(Equal("McpCatalog"))
+				g.Expect(updated.OwnerReferences[0].Name).To(Equal(catalogName))
+			}).Should(Succeed())
+		})
+
+		It("should set Ready condition to False and no owner reference when catalog does not exist", func() {
+			const resourceName = "test-job-without-catalog"
+			const catalogName = "non-existent-catalog"
+			ctx := context.Background()
+			namespacedName := types.NamespacedName{Name: resourceName, Namespace: "default"}
+
+			// Create the McpServerCertJob with a non-existent catalog label
+			job := &mcpv1alpha1.McpServerCertJob{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      resourceName,
+					Namespace: "default",
+					Labels:    map[string]string{"mcp.opendatahub.io/mcpcatalog": catalogName},
+				},
+			}
+			Expect(k8sClient.Create(ctx, job)).To(Succeed())
+			DeferCleanup(func() {
+				_ = k8sClient.Delete(ctx, job)
+			})
+
+			// Reconcile
+			reconciler := &McpServerCertJobReconciler{Client: k8sClient, Scheme: k8sClient.Scheme()}
+			_, err := reconciler.Reconcile(ctx, reconcile.Request{NamespacedName: namespacedName})
+			Expect(err).NotTo(HaveOccurred())
+
+			// Check Ready condition and owner reference
+			Eventually(func(g Gomega) {
+				updated := &mcpv1alpha1.McpServerCertJob{}
+				err := k8sClient.Get(ctx, namespacedName, updated)
+				g.Expect(err).NotTo(HaveOccurred())
+				cond := meta.FindStatusCondition(updated.Status.Conditions, "Ready")
+				g.Expect(cond).NotTo(BeNil())
+				g.Expect(cond.Status).To(Equal(metav1.ConditionFalse))
+				g.Expect(cond.Reason).To(Equal("ValidationFailed"))
+				g.Expect(cond.Message).To(Equal("referenced catalog does not exist"))
+				g.Expect(updated.OwnerReferences).To(BeEmpty())
+			}).Should(Succeed())
 		})
 	})
 })
