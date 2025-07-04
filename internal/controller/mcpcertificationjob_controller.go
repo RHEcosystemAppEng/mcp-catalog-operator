@@ -33,35 +33,35 @@ import (
 	mcpv1alpha1 "github.com/RHEcosystemAppEng/mcp-registry-operator/api/v1alpha1"
 )
 
-// McpServerCertJobReconciler reconciles a McpServerCertJob object
-type McpServerCertJobReconciler struct {
+// McpCertificationJobReconciler reconciles a McpCertificationJob object
+type McpCertificationJobReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
 }
 
-// +kubebuilder:rbac:groups=mcp.opendatahub.io,resources=mcpservercertjobs,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=mcp.opendatahub.io,resources=mcpservercertjobs/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=mcp.opendatahub.io,resources=mcpservercertjobs/finalizers,verbs=update
+// +kubebuilder:rbac:groups=mcp.opendatahub.io,resources=mcpcertificationjobs,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=mcp.opendatahub.io,resources=mcpcertificationjobs/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=mcp.opendatahub.io,resources=mcpcertificationjobs/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
 // TODO(user): Modify the Reconcile function to compare the state specified by
-// the McpServerCertJob object against the actual cluster state, and then
+// the McpCertificationJob object against the actual cluster state, and then
 // perform operations to make the cluster state reflect the state specified by
 // the user.
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.20.4/pkg/reconcile
-func (r *McpServerCertJobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *McpCertificationJobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := logf.FromContext(ctx)
 
-	mcpServerCertJob := &mcpv1alpha1.McpServerCertJob{}
-	err := r.Get(ctx, req.NamespacedName, mcpServerCertJob)
+	mcpCertificationJob := &mcpv1alpha1.McpCertificationJob{}
+	err := r.Get(ctx, req.NamespacedName, mcpCertificationJob)
 	if err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	err = r.initializeOwnershipAndReadiness(ctx, mcpServerCertJob, log)
+	err = r.initializeOwnershipAndReadiness(ctx, mcpCertificationJob, log)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -70,36 +70,36 @@ func (r *McpServerCertJobReconciler) Reconcile(ctx context.Context, req ctrl.Req
 }
 
 // initializeOwnershipAndReadiness sets the owner reference to the referenced McpCatalog and sets the Ready condition accordingly.
-func (r *McpServerCertJobReconciler) initializeOwnershipAndReadiness(ctx context.Context, mcpServerCertJob *mcpv1alpha1.McpServerCertJob, log logr.Logger) error {
+func (r *McpCertificationJobReconciler) initializeOwnershipAndReadiness(ctx context.Context, mcpCertificationJob *mcpv1alpha1.McpCertificationJob, log logr.Logger) error {
 	now := metav1.NewTime(time.Now())
-	mcpCatalog, err := GetMcpCatalogFromLabels(ctx, r.Client, mcpServerCertJob)
+	mcpCatalog, err := GetMcpCatalogFromLabels(ctx, r.Client, mcpCertificationJob)
 	catalogExists := err == nil
 
 	var readyCondition metav1.Condition
 	if catalogExists {
-		if mcpCatalog.Namespace != mcpServerCertJob.Namespace {
+		if mcpCatalog.Namespace != mcpCertificationJob.Namespace {
 			readyCondition = metav1.Condition{
 				Type:               ConditionTypeReady,
 				Status:             metav1.ConditionFalse,
 				Reason:             ConditionReasonCrossNamespaces,
 				Message:            ValidationMessageCrossNamespaces,
 				LastTransitionTime: now,
-				ObservedGeneration: mcpServerCertJob.Generation,
+				ObservedGeneration: mcpCertificationJob.Generation,
 			}
 		} else {
 			readyCondition = metav1.Condition{
 				Type:               ConditionTypeReady,
 				Status:             metav1.ConditionTrue,
 				Reason:             ConditionReasonValidationSucceeded,
-				Message:            ValidationMessageServerSuccess,
+				Message:            "McpCertificationJob spec is valid",
 				LastTransitionTime: now,
-				ObservedGeneration: mcpServerCertJob.Generation,
+				ObservedGeneration: mcpCertificationJob.Generation,
 			}
-			if err := controllerutil.SetControllerReference(mcpCatalog, mcpServerCertJob, r.Scheme); err != nil {
+			if err := controllerutil.SetControllerReference(mcpCatalog, mcpCertificationJob, r.Scheme); err != nil {
 				return fmt.Errorf("failed to set owner reference: %w", err)
 			}
-			if err := r.Update(ctx, mcpServerCertJob); err != nil {
-				return fmt.Errorf("failed to update McpServerCertJob with owner ref: %w", err)
+			if err := r.Update(ctx, mcpCertificationJob); err != nil {
+				return fmt.Errorf("failed to update McpCertificationJob with owner ref: %w", err)
 			}
 		}
 	} else {
@@ -109,14 +109,14 @@ func (r *McpServerCertJobReconciler) initializeOwnershipAndReadiness(ctx context
 			Reason:             ConditionReasonValidationFailed,
 			Message:            ValidationMessageCatalogNotFound,
 			LastTransitionTime: now,
-			ObservedGeneration: mcpServerCertJob.Generation,
+			ObservedGeneration: mcpCertificationJob.Generation,
 		}
 		log.Info("Referenced catalog NOT found", "error", err)
 	}
 
-	meta.SetStatusCondition(&mcpServerCertJob.Status.Conditions, readyCondition)
-	if err := r.Status().Update(ctx, mcpServerCertJob); err != nil {
-		log.Error(err, "Failed to update McpServerCertJob status")
+	meta.SetStatusCondition(&mcpCertificationJob.Status.Conditions, readyCondition)
+	if err := r.Status().Update(ctx, mcpCertificationJob); err != nil {
+		log.Error(err, "Failed to update McpCertificationJob status")
 		return err
 	}
 
@@ -124,9 +124,9 @@ func (r *McpServerCertJobReconciler) initializeOwnershipAndReadiness(ctx context
 }
 
 // SetupWithManager sets up the controller with the Manager.
-func (r *McpServerCertJobReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *McpCertificationJobReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&mcpv1alpha1.McpServerCertJob{}).
-		Named("mcpservercertjob").
+		For(&mcpv1alpha1.McpCertificationJob{}).
+		Named("mcpcertificationjob").
 		Complete(r)
 }

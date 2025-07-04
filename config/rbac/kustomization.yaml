@@ -15,9 +15,9 @@ resources:
 # default, aiding admins in cluster management. Those roles are
 # not used by the {{ .ProjectName }} itself. You can comment the following lines
 # if you do not want those helpers be installed with your Project.
-- mcpserverpromotionjob_admin_role.yaml
-- mcpserverpromotionjob_editor_role.yaml
-- mcpserverpromotionjob_viewer_role.yaml
+- mcppromotionjob_admin_role.yaml
+- mcppromotionjob_editor_role.yaml
+- mcppromotionjob_viewer_role.yaml
 - mcpstagingarea_admin_role.yaml
 - mcpstagingarea_editor_role.yaml
 - mcpstagingarea_viewer_role.yaml
@@ -33,12 +33,12 @@ resources:
 - mcpserver_admin_role.yaml
 - mcpserver_editor_role.yaml
 - mcpserver_viewer_role.yaml
-- mcpservercertjob_admin_role.yaml
-- mcpservercertjob_editor_role.yaml
-- mcpservercertjob_viewer_role.yaml
-- mcpserverimportjob_admin_role.yaml
-- mcpserverimportjob_editor_role.yaml
-- mcpserverimportjob_viewer_role.yaml
+- mcpcertificationjob_admin_role.yaml
+- mcpcertificationjob_editor_role.yaml
+- mcpcertificationjob_viewer_role.yaml
+- mcpimportjob_admin_role.yaml
+- mcpimportjob_editor_role.yaml
+- mcpimportjob_viewer_role.yaml
 - mcpserverrun_admin_role.yaml
 - mcpserverrun_editor_role.yaml
 - mcpserverrun_viewer_role.yaml

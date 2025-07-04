@@ -23,15 +23,15 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// McpServerCertJobSpec defines the desired state of McpServerCertJob.
-type McpServerCertJobSpec struct {
+// McpCertificationJobSpec defines the desired state of McpCertificationJob.
+type McpCertificationJobSpec struct {
 	// Reference to the McpServer to be certified
 	ServerRef ServerRef `json:"serverRef,omitempty"`
 }
 
-// McpServerCertJobStatus defines the observed state of McpServerCertJob.
-type McpServerCertJobStatus struct {
-	// Conditions represent the latest available observations of a McpServerCertJob's current state.
+// McpCertificationJobStatus defines the observed state of McpCertificationJob.
+type McpCertificationJobStatus struct {
+	// Conditions represent the latest available observations of a McpCertificationJob's current state.
 	// +listType=map
 	// +listMapKey=type
 	Conditions []metav1.Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type"`
@@ -40,24 +40,24 @@ type McpServerCertJobStatus struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 
-// McpServerCertJob is the Schema for the mcpservercertjobs API.
-type McpServerCertJob struct {
+// McpCertificationJob is the Schema for the mcpcertificationjobs API.
+type McpCertificationJob struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   McpServerCertJobSpec   `json:"spec,omitempty"`
-	Status McpServerCertJobStatus `json:"status,omitempty"`
+	Spec   McpCertificationJobSpec   `json:"spec,omitempty"`
+	Status McpCertificationJobStatus `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-// McpServerCertJobList contains a list of McpServerCertJob.
-type McpServerCertJobList struct {
+// McpCertificationJobList contains a list of McpCertificationJob.
+type McpCertificationJobList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []McpServerCertJob `json:"items"`
+	Items           []McpCertificationJob `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&McpServerCertJob{}, &McpServerCertJobList{})
+	SchemeBuilder.Register(&McpCertificationJob{}, &McpCertificationJobList{})
 }

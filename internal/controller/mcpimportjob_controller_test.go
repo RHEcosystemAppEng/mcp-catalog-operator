@@ -35,20 +35,20 @@ import (
 	mcpv1alpha1 "github.com/RHEcosystemAppEng/mcp-registry-operator/api/v1alpha1"
 )
 
-// Helper function to create McpServerImportJob instances
-var createMcpServerImportJob = func(name, namespace, registryURI, catalogName string, nameFilter *string, maxServers *int) *mcpv1alpha1.McpServerImportJob {
+// Helper function to create McpImportJob instances
+var createMcpImportJob = func(name, namespace, registryURI, catalogName string, nameFilter *string, maxServers *int) *mcpv1alpha1.McpImportJob {
 	labels := make(map[string]string)
 	if catalogName != "" {
 		labels[McpCatalogLabel] = catalogName
 	}
 
-	return &mcpv1alpha1.McpServerImportJob{
+	return &mcpv1alpha1.McpImportJob{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
 			Labels:    labels,
 		},
-		Spec: mcpv1alpha1.McpServerImportJobSpec{
+		Spec: mcpv1alpha1.McpImportJobSpec{
 			RegistryURI: registryURI,
 			NameFilter:  nameFilter,
 			MaxServers:  maxServers,
@@ -56,7 +56,7 @@ var createMcpServerImportJob = func(name, namespace, registryURI, catalogName st
 	}
 }
 
-var _ = Describe("McpServerImportJob Controller", func() {
+var _ = Describe("McpImportJob Controller", func() {
 	Context("When reconciling a resource", func() {
 		const resourceName = "test-resource"
 		const catalogName = "test-catalog"
@@ -72,16 +72,16 @@ var _ = Describe("McpServerImportJob Controller", func() {
 			Name:      resourceName,
 			Namespace: "default", // TODO(user):Modify as needed
 		}
-		mcpserverimportjob := &mcpv1alpha1.McpServerImportJob{}
+		mcpimportjob := &mcpv1alpha1.McpImportJob{}
 
 		BeforeEach(func() {
-			By("creating the custom resource for the Kind McpServerImportJob")
-			err := k8sClient.Get(ctx, typeNamespacedName, mcpserverimportjob)
+			By("creating the custom resource for the Kind McpImportJob")
+			err := k8sClient.Get(ctx, typeNamespacedName, mcpimportjob)
 			if err != nil && errors.IsNotFound(err) {
 				catalog := createMcpCatalog(catalogName, catalogNamespace, "Test catalog", "quay.io/test")
 				Expect(k8sClient.Create(ctx, catalog)).To(Succeed())
 
-				resource := createMcpServerImportJob(
+				resource := createMcpImportJob(
 					resourceName,
 					"default",
 					"http://mcp-registry.com",
@@ -95,11 +95,11 @@ var _ = Describe("McpServerImportJob Controller", func() {
 
 		AfterEach(func() {
 			// TODO(user): Cleanup logic after each test, like removing the resource instance.
-			resource := &mcpv1alpha1.McpServerImportJob{}
+			resource := &mcpv1alpha1.McpImportJob{}
 			err := k8sClient.Get(ctx, typeNamespacedName, resource)
 			Expect(err).NotTo(HaveOccurred())
 
-			By("Cleanup the specific resource instance McpServerImportJob")
+			By("Cleanup the specific resource instance McpImportJob")
 			Expect(k8sClient.Delete(ctx, resource)).To(Succeed())
 
 			By("Cleanup then  McpCatalog  resource")
@@ -113,7 +113,7 @@ var _ = Describe("McpServerImportJob Controller", func() {
 			Eventually(func(g Gomega) {
 				jobList := &batchv1.JobList{}
 				err := k8sClient.List(ctx, jobList, client.InNamespace("default"), client.MatchingLabels(map[string]string{
-					McpServerImportJobLabel: resourceName,
+					McpImportJobLabel: resourceName,
 				}))
 				By(fmt.Sprintf("Debug: Found %d jobs, error: %v", len(jobList.Items), err))
 
@@ -162,7 +162,7 @@ var _ = Describe("McpServerImportJob Controller", func() {
 
 		It("should successfully reconcile the resource and create expected resources", func() {
 			By("Reconciling the created resource")
-			controllerReconciler := &McpServerImportJobReconciler{
+			controllerReconciler := &McpImportJobReconciler{
 				Client: k8sClient,
 				Scheme: k8sClient.Scheme(),
 			}
@@ -176,7 +176,7 @@ var _ = Describe("McpServerImportJob Controller", func() {
 			Eventually(func(g Gomega) {
 				jobList := &batchv1.JobList{}
 				err := k8sClient.List(ctx, jobList, client.InNamespace("default"), client.MatchingLabels(map[string]string{
-					McpServerImportJobLabel: resourceName,
+					McpImportJobLabel: resourceName,
 				}))
 				g.Expect(err).NotTo(HaveOccurred())
 				g.Expect(jobList.Items).To(HaveLen(1))
@@ -185,7 +185,7 @@ var _ = Describe("McpServerImportJob Controller", func() {
 				By(fmt.Sprintf("Debug: Job created with owner references: %v", job.OwnerReferences))
 				By(fmt.Sprintf("Debug: Job name: %s", job.Name))
 				// Verify Job has expected labels
-				g.Expect(job.Labels).To(HaveKeyWithValue(McpServerImportJobLabel, resourceName))
+				g.Expect(job.Labels).To(HaveKeyWithValue(McpImportJobLabel, resourceName))
 				g.Expect(job.Labels).To(HaveKeyWithValue(McpCatalogLabel, "test-catalog"))
 
 				// Verify Job spec

@@ -50,7 +50,7 @@ resources:
   controller: true
   domain: opendatahub.io
   group: mcp
-  kind: McpServerImportJob
+  kind: McpImportJob
   path: github.com/RHEcosystemAppEng/mcp-registry-operator/api/v1alpha1
   version: v1
 - api:
@@ -59,7 +59,7 @@ resources:
   controller: true
   domain: opendatahub.io
   group: mcp
-  kind: McpServerCertJob
+  kind: McpCertificationJob
   path: github.com/RHEcosystemAppEng/mcp-registry-operator/api/v1alpha1
   version: v1
 - api:
@@ -86,7 +86,7 @@ resources:
   controller: true
   domain: opendatahub.io
   group: mcp
-  kind: McpServerPromotionJob
+  kind: McpPromotionJob
   path: github.com/RHEcosystemAppEng/mcp-registry-operator/api/v1alpha1
   version: v1alpha1
 version: "3"

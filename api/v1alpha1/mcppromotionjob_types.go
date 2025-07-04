@@ -20,8 +20,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// McpServerPromotionJobSpec defines the desired state of McpServerPromotionJob.
-type McpServerPromotionJobSpec struct {
+// McpPromotionJobSpec defines the desired state of McpPromotionJob.
+type McpPromotionJobSpec struct {
 	CatalogRef CatalogRef `json:"catalogRef"`
 
 	Servers []string `json:"servers"`
@@ -51,32 +51,32 @@ type ServerPromotionStatusDefinition struct {
 	DestinationImage string          `json:"destinationImage"`
 }
 
-// McpServerPromotionJobStatus defines the observed state of McpServerPromotionJob.
-type McpServerPromotionJobStatus struct {
+// McpPromotionJobStatus defines the observed state of McpPromotionJob.
+type McpPromotionJobStatus struct {
 	ServerPromotions []ServerPromotionStatusDefinition `json:"serverPromotions,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 
-// McpServerPromotionJob is the Schema for the mcpserverpromotionjob API.
-type McpServerPromotionJob struct {
+// McpPromotionJob is the Schema for the mcppromotionjob API.
+type McpPromotionJob struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   McpServerPromotionJobSpec   `json:"spec,omitempty"`
-	Status McpServerPromotionJobStatus `json:"status,omitempty"`
+	Spec   McpPromotionJobSpec   `json:"spec,omitempty"`
+	Status McpPromotionJobStatus `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-// McpServerPromotionJobList contains a list of McpServerPromotionJob.
-type McpServerPromotionJobList struct {
+// McpPromotionJobList contains a list of McpPromotionJob.
+type McpPromotionJobList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []McpServerPromotionJob `json:"items"`
+	Items           []McpPromotionJob `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&McpServerPromotionJob{}, &McpServerPromotionJobList{})
+	SchemeBuilder.Register(&McpPromotionJob{}, &McpPromotionJobList{})
 }

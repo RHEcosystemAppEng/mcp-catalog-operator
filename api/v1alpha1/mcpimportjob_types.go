@@ -29,8 +29,8 @@ const (
 	ImportJobFailed    ImportJobStatus = "failed"
 )
 
-// McpServerImportJobSpec defines the desired state of McpServerImportJob.
-type McpServerImportJobSpec struct {
+// McpImportJobSpec defines the desired state of McpImportJob.
+type McpImportJobSpec struct {
 	// Reference to the MCP Registry to import the servers from
 	RegistryURI string `json:"registryUri"`
 	// TODO: Add support for authentication
@@ -41,8 +41,8 @@ type McpServerImportJobSpec struct {
 	MaxServers *int `json:"maxServers,omitempty"`
 }
 
-// McpServerImportJobStatus defines the observed state of McpServerImportJob.
-type McpServerImportJobStatus struct {
+// McpImportJobStatus defines the observed state of McpImportJob.
+type McpImportJobStatus struct {
 	// Job status
 	Status ImportJobStatus `json:"status"`
 	// Name of the ConfigMap that contains the import details
@@ -52,24 +52,24 @@ type McpServerImportJobStatus struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 
-// McpServerImportJob is the Schema for the mcpserverimportjobs API.
-type McpServerImportJob struct {
+// McpImportJob is the Schema for the mcpimportjobs API.
+type McpImportJob struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   McpServerImportJobSpec   `json:"spec,omitempty"`
-	Status McpServerImportJobStatus `json:"status,omitempty"`
+	Spec   McpImportJobSpec   `json:"spec,omitempty"`
+	Status McpImportJobStatus `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-// McpServerImportJobList contains a list of McpServerImportJob.
-type McpServerImportJobList struct {
+// McpImportJobList contains a list of McpImportJob.
+type McpImportJobList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []McpServerImportJob `json:"items"`
+	Items           []McpImportJob `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&McpServerImportJob{}, &McpServerImportJobList{})
+	SchemeBuilder.Register(&McpImportJob{}, &McpImportJobList{})
 }

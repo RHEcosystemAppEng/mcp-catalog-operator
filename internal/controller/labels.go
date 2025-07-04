@@ -11,11 +11,11 @@ import (
 )
 
 const (
-	McpStagingAreaLabel     = "mcp.opendatahub.io/mcpstagingarea"
-	McpCatalogLabel         = "mcp.opendatahub.io/mcpcatalog"
-	McpRegistryLabel        = "mcp.opendatahub.io/mcpregistry"
-	McpServerNameLabel      = "mcp.opendatahub.io/mcpserver"
-	McpServerImportJobLabel = "mcp.opendatahub.io/mcpserverimportjob"
+	McpStagingAreaLabel = "mcp.opendatahub.io/mcpstagingarea"
+	McpCatalogLabel     = "mcp.opendatahub.io/mcpcatalog"
+	McpRegistryLabel    = "mcp.opendatahub.io/mcpregistry"
+	McpServerNameLabel  = "mcp.opendatahub.io/mcpserver"
+	McpImportJobLabel   = "mcp.opendatahub.io/mcpimportjob"
 )
 
 // GetMcpCatalogFromLabels retrieves an McpCatalog instance using labels

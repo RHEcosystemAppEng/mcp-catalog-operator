@@ -4,20 +4,21 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.17.2
-  name: mcpservercertjobs.mcp.opendatahub.io
+  name: mcpcertificationjobs.mcp.opendatahub.io
 spec:
   group: mcp.opendatahub.io
   names:
-    kind: McpServerCertJob
-    listKind: McpServerCertJobList
-    plural: mcpservercertjobs
-    singular: mcpservercertjob
+    kind: McpCertificationJob
+    listKind: McpCertificationJobList
+    plural: mcpcertificationjobs
+    singular: mcpcertificationjob
   scope: Namespaced
   versions:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: McpServerCertJob is the Schema for the mcpservercertjobs API.
+        description: McpCertificationJob is the Schema for the mcpcertificationjobs
+          API.
         properties:
           apiVersion:
             description: |-
@@ -37,7 +38,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: McpServerCertJobSpec defines the desired state of McpServerCertJob.
+            description: McpCertificationJobSpec defines the desired state of McpCertificationJob.
             properties:
               serverRef:
                 description: Reference to the McpServer to be certified
@@ -51,11 +52,11 @@ spec:
                 type: object
             type: object
           status:
-            description: McpServerCertJobStatus defines the observed state of McpServerCertJob.
+            description: McpCertificationJobStatus defines the observed state of McpCertificationJob.
             properties:
               conditions:
                 description: Conditions represent the latest available observations
-                  of a McpServerCertJob's current state.
+                  of a McpCertificationJob's current state.
                 items:
                   description: Condition contains details for one aspect of the current
                     state of this API Resource.
