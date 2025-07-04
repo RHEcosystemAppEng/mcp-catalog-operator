@@ -53,7 +53,7 @@ func GetObjectFromLabels(ctx context.Context, c client.Client, obj client.Object
 		Name:      objectName,
 		Namespace: objectNamespace,
 	}, result); err != nil {
-		return fmt.Errorf("failed to get %s '%s'in namespace %s: %w", result.GetObjectKind().GroupVersionKind().Kind, objectName, objectNamespace, err)
+		return fmt.Errorf("failed to get %s '%s' in namespace %s: %w", result.GetObjectKind().GroupVersionKind().Kind, objectName, objectNamespace, err)
 	}
 
 	log := logf.FromContext(ctx)
