@@ -202,6 +202,13 @@ func main() {
 		os.Exit(1)
 	}
 
+	if err = (&controller.McpStagingAreaReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "McpStagingArea")
+		os.Exit(1)
+	}
 	if err = (&controller.McpRegistryReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
@@ -242,6 +249,13 @@ func main() {
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "McpServerImportJob")
+		os.Exit(1)
+	}
+	if err = (&controller.McpServerPromotionJobReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "McpServerPromotionJob")
 		os.Exit(1)
 	}
 	if err = (&controller.McpServerRunReconciler{

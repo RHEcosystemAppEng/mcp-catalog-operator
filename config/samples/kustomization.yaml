@@ -7,4 +7,6 @@ resources:
 - mcp_v1alpha1_mcpservercertjob.yaml
 - mcp_v1alpha1_mcpregistry.yaml
 - mcp_v1alpha1_mcpserverrun.yaml
+- mcp_v1alpha1_mcpstagingarea.yaml
+- mcp_v1alpha1_mcpserverpromotionjob.yaml
 # +kubebuilder:scaffold:manifestskustomizesamples

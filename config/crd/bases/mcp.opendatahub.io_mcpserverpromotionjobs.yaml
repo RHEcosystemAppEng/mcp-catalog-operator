@@ -1,0 +1,94 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.17.2
+  name: mcpserverpromotionjobs.mcp.opendatahub.io
+spec:
+  group: mcp.opendatahub.io
+  names:
+    kind: McpServerPromotionJob
+    listKind: McpServerPromotionJobList
+    plural: mcpserverpromotionjobs
+    singular: mcpserverpromotionjob
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: McpServerPromotionJob is the Schema for the mcpserverpromotionjob
+          API.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: McpServerPromotionJobSpec defines the desired state of McpServerPromotionJob.
+            properties:
+              catalogRef:
+                properties:
+                  name:
+                    type: string
+                  namespace:
+                    type: string
+                required:
+                - name
+                type: object
+              servers:
+                items:
+                  type: string
+                type: array
+            required:
+            - catalogRef
+            - servers
+            type: object
+          status:
+            description: McpServerPromotionJobStatus defines the observed state of
+              McpServerPromotionJob.
+            properties:
+              serverPromotions:
+                items:
+                  description: ServerPromotionStatusDefinition defines the promotion
+                    status for a single server
+                  properties:
+                    destinationImage:
+                      type: string
+                    name:
+                      type: string
+                    originalImage:
+                      type: string
+                    promotionStatus:
+                      description: PromotionStatus is the state of a server promotion
+                      enum:
+                      - planned
+                      - succeeded
+                      - failed
+                      type: string
+                  required:
+                  - destinationImage
+                  - name
+                  - originalImage
+                  - promotionStatus
+                  type: object
+                type: array
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

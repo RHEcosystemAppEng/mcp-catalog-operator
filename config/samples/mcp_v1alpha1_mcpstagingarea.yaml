@@ -1,0 +1,8 @@
+apiVersion: mcp.opendatahub.io/v1alpha1
+kind: McpStagingArea
+metadata:
+  labels:
+    app.kubernetes.io/name: mcp-registry-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: staging-area
+spec: {}
