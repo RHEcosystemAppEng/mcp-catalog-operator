@@ -55,11 +55,11 @@ rules:
   - mcp.opendatahub.io
   resources:
   - mcpcatalogs
+  - mcpcertificationjobs
   - mcpcertifiedservers
   - mcpimportjobs
   - mcppromotionjob
   - mcpregistries
-  - mcpservercertjobs
   - mcpserverruns
   - mcpservers
   - mcpstagingarea
@@ -75,11 +75,11 @@ rules:
   - mcp.opendatahub.io
   resources:
   - mcpcatalogs/finalizers
+  - mcpcertificationjobs/finalizers
   - mcpcertifiedservers/finalizers
   - mcpimportjobs/finalizers
   - mcppromotionjob/finalizers
   - mcpregistries/finalizers
-  - mcpservercertjobs/finalizers
   - mcpserverruns/finalizers
   - mcpservers/finalizers
   - mcpstagingarea/finalizers
@@ -89,11 +89,11 @@ rules:
   - mcp.opendatahub.io
   resources:
   - mcpcatalogs/status
+  - mcpcertificationjobs/status
   - mcpcertifiedservers/status
   - mcpimportjobs/status
   - mcppromotionjob/status
   - mcpregistries/status
-  - mcpservercertjobs/status
   - mcpserverruns/status
   - mcpservers/status
   - mcpstagingarea/status

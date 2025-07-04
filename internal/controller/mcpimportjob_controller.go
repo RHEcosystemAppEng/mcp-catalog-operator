@@ -44,7 +44,7 @@ type McpImportJobReconciler struct {
 
 // initializeJob initializes missing fields in the McpImportJob
 // Returns an error if initialization fails, and a boolean indicating if the job needs to be started
-func (r *McpImportJobReconciler) initializeJob(ctx context.Context, mcpServerImportJob *mcpv1alpha1.McpImportJob) (bool, error) {
+func (r *McpImportJobReconciler) initializeJob(ctx context.Context, mcpImportJob *mcpv1alpha1.McpImportJob) (bool, error) {
 	log := logf.FromContext(ctx)
 
 	// Initialize missing fields in spec
@@ -56,49 +56,49 @@ func (r *McpImportJobReconciler) initializeJob(ctx context.Context, mcpServerImp
 	defaultConfigMapName := ""
 
 	// Initialize NameFilter to empty string if not set
-	if mcpServerImportJob.Spec.NameFilter == nil {
-		mcpServerImportJob.Spec.NameFilter = &defaultNameFilter
+	if mcpImportJob.Spec.NameFilter == nil {
+		mcpImportJob.Spec.NameFilter = &defaultNameFilter
 		needsUpdate = true
 	}
 
 	// Initialize MaxServers to 10 if not set
-	if mcpServerImportJob.Spec.MaxServers == nil {
-		mcpServerImportJob.Spec.MaxServers = &defaultMaxServers
+	if mcpImportJob.Spec.MaxServers == nil {
+		mcpImportJob.Spec.MaxServers = &defaultMaxServers
 		needsUpdate = true
 	}
 
 	// Initialize status if not set
-	if mcpServerImportJob.Status.Status == "" {
-		mcpServerImportJob.Status.Status = mcpv1alpha1.ImportJobRunning
+	if mcpImportJob.Status.Status == "" {
+		mcpImportJob.Status.Status = mcpv1alpha1.ImportJobRunning
 		needsStatusUpdate = true
 		needsStart = true
 	}
 
 	// Initialize ConfigMapName to empty string if not set
-	if mcpServerImportJob.Status.ConfigMapName == nil {
-		mcpServerImportJob.Status.ConfigMapName = &defaultConfigMapName
+	if mcpImportJob.Status.ConfigMapName == nil {
+		mcpImportJob.Status.ConfigMapName = &defaultConfigMapName
 		needsStatusUpdate = true
 	}
 
 	if needsStatusUpdate {
-		err := r.Status().Update(ctx, mcpServerImportJob)
+		err := r.Status().Update(ctx, mcpImportJob)
 		if err != nil {
 			log.Error(err, "Failed to update McpImportJob status")
 			return false, err
 		}
 	}
 
-	catalogName := mcpServerImportJob.Labels[McpCatalogLabel]
+	catalogName := mcpImportJob.Labels[McpCatalogLabel]
 	if catalogName == "" {
 		return false, fmt.Errorf("McpCatalogLabel not found on McpImportJob")
 	}
 
 	mcpCatalog := &mcpv1alpha1.McpCatalog{}
-	err := r.Get(ctx, types.NamespacedName{Name: catalogName, Namespace: mcpServerImportJob.Namespace}, mcpCatalog)
+	err := r.Get(ctx, types.NamespacedName{Name: catalogName, Namespace: mcpImportJob.Namespace}, mcpCatalog)
 	if err != nil {
 		return false, fmt.Errorf("failed to get McpCatalog: %w", err)
 	}
-	if err := controllerutil.SetControllerReference(mcpCatalog, mcpServerImportJob, r.Scheme); err != nil {
+	if err := controllerutil.SetControllerReference(mcpCatalog, mcpImportJob, r.Scheme); err != nil {
 		return false, fmt.Errorf("failed to set owner reference: %w", err)
 	}
 	log.Info("Set ownership of McpImportJob to McpCatalog", "catalogName", catalogName)
@@ -106,10 +106,10 @@ func (r *McpImportJobReconciler) initializeJob(ctx context.Context, mcpServerImp
 	// Update the resource if any fields were initialized
 	if needsUpdate {
 		log.Info("Initializing McpImportJob fields",
-			"name", mcpServerImportJob.Name,
-			"namespace", mcpServerImportJob.Namespace)
+			"name", mcpImportJob.Name,
+			"namespace", mcpImportJob.Namespace)
 
-		err := r.Update(ctx, mcpServerImportJob)
+		err := r.Update(ctx, mcpImportJob)
 		if err != nil {
 			log.Error(err, "Failed to update McpImportJob spec")
 			return false, err
@@ -195,28 +195,28 @@ func (r *McpImportJobReconciler) createRoleBinding(ctx context.Context, namespac
 }
 
 // createImportJob creates the Kubernetes Job for importing MCP servers
-func (r *McpImportJobReconciler) createImportJob(ctx context.Context, mcpServerImportJob *mcpv1alpha1.McpImportJob) error {
+func (r *McpImportJobReconciler) createImportJob(ctx context.Context, mcpImportJob *mcpv1alpha1.McpImportJob) error {
 	log := logf.FromContext(ctx)
 
 	// Get the catalog name from labels
-	catalogName := mcpServerImportJob.Labels[McpCatalogLabel]
+	catalogName := mcpImportJob.Labels[McpCatalogLabel]
 	if catalogName == "" {
 		return fmt.Errorf("McpCatalogLabel not found on McpImportJob")
 	}
 
 	// Convert MaxServers to string
 	maxServersStr := strconv.Itoa(DefaultMaxServers) // default value
-	if mcpServerImportJob.Spec.MaxServers != nil {
-		maxServersStr = strconv.Itoa(*mcpServerImportJob.Spec.MaxServers)
+	if mcpImportJob.Spec.MaxServers != nil {
+		maxServersStr = strconv.Itoa(*mcpImportJob.Spec.MaxServers)
 	}
 
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: McpServerImporterJobGenerateName,
-			Namespace:    mcpServerImportJob.Namespace,
+			Namespace:    mcpImportJob.Namespace,
 			Labels: map[string]string{
 				McpCatalogLabel:   catalogName,
-				McpImportJobLabel: mcpServerImportJob.Name,
+				McpImportJobLabel: mcpImportJob.Name,
 			},
 		},
 		Spec: batchv1.JobSpec{
@@ -235,11 +235,11 @@ func (r *McpImportJobReconciler) createImportJob(ctx context.Context, mcpServerI
 								},
 								{
 									Name:  "REGISTRY_URL",
-									Value: mcpServerImportJob.Spec.RegistryURI,
+									Value: mcpImportJob.Spec.RegistryURI,
 								},
 								{
 									Name:  "IMPORT_JOB_NAME",
-									Value: mcpServerImportJob.Name,
+									Value: mcpImportJob.Name,
 								},
 								{
 									Name:  "MAX_SERVERS",
@@ -253,15 +253,15 @@ func (r *McpImportJobReconciler) createImportJob(ctx context.Context, mcpServerI
 		},
 	}
 
-	if mcpServerImportJob.Spec.NameFilter != nil {
+	if mcpImportJob.Spec.NameFilter != nil {
 		job.Spec.Template.Spec.Containers[0].Env = append(job.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
 			Name:  "NAME_FILTER",
-			Value: *mcpServerImportJob.Spec.NameFilter,
+			Value: *mcpImportJob.Spec.NameFilter,
 		})
 	}
 
 	// Set the owner reference to make the Job owned by the McpImportJob
-	if err := controllerutil.SetControllerReference(mcpServerImportJob, job, r.Scheme); err != nil {
+	if err := controllerutil.SetControllerReference(mcpImportJob, job, r.Scheme); err != nil {
 		return fmt.Errorf("failed to set controller reference: %w", err)
 	}
 
@@ -275,52 +275,52 @@ func (r *McpImportJobReconciler) createImportJob(ctx context.Context, mcpServerI
 }
 
 // startImportJob creates all necessary resources and starts the import job
-func (r *McpImportJobReconciler) startImportJob(ctx context.Context, mcpServerImportJob *mcpv1alpha1.McpImportJob) error {
+func (r *McpImportJobReconciler) startImportJob(ctx context.Context, mcpImportJob *mcpv1alpha1.McpImportJob) error {
 	log := logf.FromContext(ctx)
 
 	// Create ServiceAccount
-	if err := r.createServiceAccount(ctx, mcpServerImportJob.Namespace); err != nil {
+	if err := r.createServiceAccount(ctx, mcpImportJob.Namespace); err != nil {
 		log.Error(err, "Failed to create ServiceAccount")
 		return err
 	}
 
 	// Create Role
-	if err := r.createRole(ctx, mcpServerImportJob.Namespace); err != nil {
+	if err := r.createRole(ctx, mcpImportJob.Namespace); err != nil {
 		log.Error(err, "Failed to create Role")
 		return err
 	}
 
 	// Create RoleBinding
-	if err := r.createRoleBinding(ctx, mcpServerImportJob.Namespace); err != nil {
+	if err := r.createRoleBinding(ctx, mcpImportJob.Namespace); err != nil {
 		log.Error(err, "Failed to create RoleBinding")
 		return err
 	}
 
 	// Create the import Job
-	if err := r.createImportJob(ctx, mcpServerImportJob); err != nil {
+	if err := r.createImportJob(ctx, mcpImportJob); err != nil {
 		log.Error(err, "Failed to create import Job")
 		return err
 	}
 
-	log.Info("Successfully started import job", "name", mcpServerImportJob.Name, "namespace", mcpServerImportJob.Namespace)
+	log.Info("Successfully started import job", "name", mcpImportJob.Name, "namespace", mcpImportJob.Namespace)
 	return nil
 }
 
 // checkJobStatus checks the status of the Job owned by this McpImportJob and updates the status accordingly
-func (r *McpImportJobReconciler) checkJobStatus(ctx context.Context, mcpServerImportJob *mcpv1alpha1.McpImportJob) error {
+func (r *McpImportJobReconciler) checkJobStatus(ctx context.Context, mcpImportJob *mcpv1alpha1.McpImportJob) error {
 	log := logf.FromContext(ctx)
 
 	// List Jobs owned by this McpImportJob
 	jobList := &batchv1.JobList{}
-	err := r.List(ctx, jobList, client.InNamespace(mcpServerImportJob.Namespace), client.MatchingLabels(map[string]string{
-		McpImportJobLabel: mcpServerImportJob.Name,
+	err := r.List(ctx, jobList, client.InNamespace(mcpImportJob.Namespace), client.MatchingLabels(map[string]string{
+		McpImportJobLabel: mcpImportJob.Name,
 	}))
 	if err != nil {
 		return fmt.Errorf("failed to list Jobs: %w", err)
 	}
 
 	if len(jobList.Items) == 0 {
-		log.Info("No Jobs found for McpImportJob", "name", mcpServerImportJob.Name, "namespace", mcpServerImportJob.Namespace)
+		log.Info("No Jobs found for McpImportJob", "name", mcpImportJob.Name, "namespace", mcpImportJob.Namespace)
 		return nil
 	}
 
@@ -360,8 +360,8 @@ func (r *McpImportJobReconciler) checkJobStatus(ctx context.Context, mcpServerIm
 	if needsUpdate {
 		// Look for ConfigMap with the appropriate label
 		configMapList := &corev1.ConfigMapList{}
-		err := r.List(ctx, configMapList, client.InNamespace(mcpServerImportJob.Namespace), client.MatchingLabels(map[string]string{
-			McpImportJobLabel: mcpServerImportJob.Name,
+		err := r.List(ctx, configMapList, client.InNamespace(mcpImportJob.Namespace), client.MatchingLabels(map[string]string{
+			McpImportJobLabel: mcpImportJob.Name,
 		}))
 		if err != nil {
 			log.Error(err, "Failed to list ConfigMaps")
@@ -375,7 +375,7 @@ func (r *McpImportJobReconciler) checkJobStatus(ctx context.Context, mcpServerIm
 			log.Info("Found ConfigMap for McpImportJob", "configMapName", configMapName)
 
 			// Set ownership of the ConfigMap to the McpImportJob
-			if err := controllerutil.SetControllerReference(mcpServerImportJob, configMap, r.Scheme); err != nil {
+			if err := controllerutil.SetControllerReference(mcpImportJob, configMap, r.Scheme); err != nil {
 				log.Error(err, "Failed to set controller reference on ConfigMap", "configMapName", configMapName)
 				return fmt.Errorf("failed to set controller reference on ConfigMap: %w", err)
 			}
@@ -390,17 +390,17 @@ func (r *McpImportJobReconciler) checkJobStatus(ctx context.Context, mcpServerIm
 		}
 
 		// Update the McpImportJob status
-		mcpServerImportJob.Status.Status = newStatus
-		mcpServerImportJob.Status.ConfigMapName = &configMapName
+		mcpImportJob.Status.Status = newStatus
+		mcpImportJob.Status.ConfigMapName = &configMapName
 
-		err = r.Status().Update(ctx, mcpServerImportJob)
+		err = r.Status().Update(ctx, mcpImportJob)
 		if err != nil {
 			log.Error(err, "Failed to update McpImportJob status")
 			return fmt.Errorf("failed to update McpImportJob status: %w", err)
 		}
 
 		log.Info("Updated McpImportJob status",
-			"name", mcpServerImportJob.Name,
+			"name", mcpImportJob.Name,
 			"status", newStatus,
 			"configMapName", configMapName)
 	}
@@ -430,15 +430,15 @@ func (r *McpImportJobReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	log := logf.FromContext(ctx)
 
 	// Fetch the McpImportJob instance
-	mcpServerImportJob := &mcpv1alpha1.McpImportJob{}
-	err := r.Get(ctx, req.NamespacedName, mcpServerImportJob)
+	mcpImportJob := &mcpv1alpha1.McpImportJob{}
+	err := r.Get(ctx, req.NamespacedName, mcpImportJob)
 	if err != nil {
 		// Handle the case where the resource is not found
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
 	// Initialize the job and check if it needs to be started
-	needsStart, err := r.initializeJob(ctx, mcpServerImportJob)
+	needsStart, err := r.initializeJob(ctx, mcpImportJob)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -446,23 +446,23 @@ func (r *McpImportJobReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	// If the job needs to be started, handle the job execution logic here
 	if needsStart {
 		log.Info("Starting McpImportJob",
-			"name", mcpServerImportJob.Name,
-			"namespace", mcpServerImportJob.Namespace)
+			"name", mcpImportJob.Name,
+			"namespace", mcpImportJob.Namespace)
 
-		if err := r.startImportJob(ctx, mcpServerImportJob); err != nil {
+		if err := r.startImportJob(ctx, mcpImportJob); err != nil {
 			log.Error(err, "Failed to start import job")
 			return ctrl.Result{}, err
-		} else if mcpServerImportJob.Status.Status == mcpv1alpha1.ImportJobRunning {
+		} else if mcpImportJob.Status.Status == mcpv1alpha1.ImportJobRunning {
 			log.Info("Import job is already running",
-				"name", mcpServerImportJob.Name,
-				"namespace", mcpServerImportJob.Namespace)
+				"name", mcpImportJob.Name,
+				"namespace", mcpImportJob.Namespace)
 
 			return ctrl.Result{}, nil
 		}
 	}
 
 	// Check Job status
-	if err := r.checkJobStatus(ctx, mcpServerImportJob); err != nil {
+	if err := r.checkJobStatus(ctx, mcpImportJob); err != nil {
 		log.Error(err, "Failed to check Job status")
 		return ctrl.Result{}, err
 	}

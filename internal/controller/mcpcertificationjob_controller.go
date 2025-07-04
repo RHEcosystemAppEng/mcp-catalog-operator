@@ -39,9 +39,9 @@ type McpCertificationJobReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-// +kubebuilder:rbac:groups=mcp.opendatahub.io,resources=mcpservercertjobs,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=mcp.opendatahub.io,resources=mcpservercertjobs/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=mcp.opendatahub.io,resources=mcpservercertjobs/finalizers,verbs=update
+// +kubebuilder:rbac:groups=mcp.opendatahub.io,resources=mcpcertificationjobs,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=mcp.opendatahub.io,resources=mcpcertificationjobs/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=mcp.opendatahub.io,resources=mcpcertificationjobs/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
