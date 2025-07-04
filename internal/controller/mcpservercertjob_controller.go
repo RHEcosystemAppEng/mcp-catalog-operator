@@ -77,7 +77,6 @@ func (r *McpServerCertJobReconciler) initializeOwnershipAndReadiness(ctx context
 
 	var readyCondition metav1.Condition
 	if catalogExists {
-		log.Info("Referenced catalog found", "catalog", mcpCatalog.Name, "namespace", mcpCatalog.Namespace)
 		if mcpCatalog.Namespace != mcpServerCertJob.Namespace {
 			readyCondition = metav1.Condition{
 				Type:               ConditionTypeReady,

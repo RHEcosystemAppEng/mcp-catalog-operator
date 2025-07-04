@@ -67,7 +67,6 @@ func (r *McpServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	var readyCondition metav1.Condition
 	now := metav1.NewTime(time.Now())
 	if catalogExists {
-		log.Info("Referenced catalog found", "catalog", mcpCatalog.Name, "namespace", mcpCatalog.Namespace)
 		if mcpCatalog.Namespace != mcpServer.Namespace {
 			readyCondition = metav1.Condition{
 				Type:               ConditionTypeReady,

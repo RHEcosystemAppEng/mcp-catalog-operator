@@ -59,8 +59,10 @@ rules:
   - mcpregistries
   - mcpservercertjobs
   - mcpserverimportjobs
+  - mcpserverpromotionjob
   - mcpserverruns
   - mcpservers
+  - mcpstagingarea
   verbs:
   - create
   - delete
@@ -77,8 +79,10 @@ rules:
   - mcpregistries/finalizers
   - mcpservercertjobs/finalizers
   - mcpserverimportjobs/finalizers
+  - mcpserverpromotionjob/finalizers
   - mcpserverruns/finalizers
   - mcpservers/finalizers
+  - mcpstagingarea/finalizers
   verbs:
   - update
 - apiGroups:
@@ -89,8 +93,10 @@ rules:
   - mcpregistries/status
   - mcpservercertjobs/status
   - mcpserverimportjobs/status
+  - mcpserverpromotionjob/status
   - mcpserverruns/status
   - mcpservers/status
+  - mcpstagingarea/status
   verbs:
   - get
   - patch

@@ -9,6 +9,8 @@ resources:
 - bases/mcp.opendatahub.io_mcpserverimportjobs.yaml
 - bases/mcp.opendatahub.io_mcpservercertjobs.yaml
 - bases/mcp.opendatahub.io_mcpcatalogs.yaml
+- bases/mcp.opendatahub.io_mcpstagingarea.yaml
+- bases/mcp.opendatahub.io_mcpserverpromotionjobs.yaml
 # +kubebuilder:scaffold:crdkustomizeresource
 
 patches:
