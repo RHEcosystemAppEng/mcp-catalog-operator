@@ -31,7 +31,7 @@ import (
 	mcpv1alpha1 "github.com/RHEcosystemAppEng/mcp-registry-operator/api/v1alpha1"
 )
 
-var _ = Describe("McpServerCertJob Controller", func() {
+var _ = Describe("McpCertificationJob Controller", func() {
 	Context("When reconciling a resource", func() {
 		const resourceName = "test-resource"
 
@@ -41,13 +41,13 @@ var _ = Describe("McpServerCertJob Controller", func() {
 			Name:      resourceName,
 			Namespace: "default", // TODO(user):Modify as needed
 		}
-		mcpservercertjob := &mcpv1alpha1.McpServerCertJob{}
+		mcpcertificationjob := &mcpv1alpha1.McpCertificationJob{}
 
 		BeforeEach(func() {
-			By("creating the custom resource for the Kind McpServerCertJob")
-			err := k8sClient.Get(ctx, typeNamespacedName, mcpservercertjob)
+			By("creating the custom resource for the Kind McpCertificationJob")
+			err := k8sClient.Get(ctx, typeNamespacedName, mcpcertificationjob)
 			if err != nil && errors.IsNotFound(err) {
-				resource := &mcpv1alpha1.McpServerCertJob{
+				resource := &mcpv1alpha1.McpCertificationJob{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      resourceName,
 						Namespace: "default",
@@ -60,16 +60,16 @@ var _ = Describe("McpServerCertJob Controller", func() {
 
 		AfterEach(func() {
 			// TODO(user): Cleanup logic after each test, like removing the resource instance.
-			resource := &mcpv1alpha1.McpServerCertJob{}
+			resource := &mcpv1alpha1.McpCertificationJob{}
 			err := k8sClient.Get(ctx, typeNamespacedName, resource)
 			Expect(err).NotTo(HaveOccurred())
 
-			By("Cleanup the specific resource instance McpServerCertJob")
+			By("Cleanup the specific resource instance McpCertificationJob")
 			Expect(k8sClient.Delete(ctx, resource)).To(Succeed())
 		})
 		It("should successfully reconcile the resource", func() {
 			By("Reconciling the created resource")
-			controllerReconciler := &McpServerCertJobReconciler{
+			controllerReconciler := &McpCertificationJobReconciler{
 				Client: k8sClient,
 				Scheme: k8sClient.Scheme(),
 			}
@@ -104,8 +104,8 @@ var _ = Describe("McpServerCertJob Controller", func() {
 				_ = k8sClient.Delete(ctx, catalog)
 			})
 
-			// Create the McpServerCertJob with the catalog label
-			job := &mcpv1alpha1.McpServerCertJob{
+			// Create the McpCertificationJob with the catalog label
+			job := &mcpv1alpha1.McpCertificationJob{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      resourceName,
 					Namespace: "default",
@@ -118,20 +118,20 @@ var _ = Describe("McpServerCertJob Controller", func() {
 			})
 
 			// Reconcile
-			reconciler := &McpServerCertJobReconciler{Client: k8sClient, Scheme: k8sClient.Scheme()}
+			reconciler := &McpCertificationJobReconciler{Client: k8sClient, Scheme: k8sClient.Scheme()}
 			_, err := reconciler.Reconcile(ctx, reconcile.Request{NamespacedName: namespacedName})
 			Expect(err).NotTo(HaveOccurred())
 
 			// Check Ready condition and owner reference
 			Eventually(func(g Gomega) {
-				updated := &mcpv1alpha1.McpServerCertJob{}
+				updated := &mcpv1alpha1.McpCertificationJob{}
 				err := k8sClient.Get(ctx, namespacedName, updated)
 				g.Expect(err).NotTo(HaveOccurred())
 				cond := meta.FindStatusCondition(updated.Status.Conditions, "Ready")
 				g.Expect(cond).NotTo(BeNil())
 				g.Expect(cond.Status).To(Equal(metav1.ConditionTrue))
 				g.Expect(cond.Reason).To(Equal("ValidationSucceeded"))
-				g.Expect(cond.Message).To(Equal("McpServer spec is valid"))
+				g.Expect(cond.Message).To(Equal("McpCertificationJob spec is valid"))
 				g.Expect(updated.OwnerReferences).To(HaveLen(1))
 				g.Expect(updated.OwnerReferences[0].Kind).To(Equal("McpCatalog"))
 				g.Expect(updated.OwnerReferences[0].Name).To(Equal(catalogName))
@@ -144,8 +144,8 @@ var _ = Describe("McpServerCertJob Controller", func() {
 			ctx := context.Background()
 			namespacedName := types.NamespacedName{Name: resourceName, Namespace: "default"}
 
-			// Create the McpServerCertJob with a non-existent catalog label
-			job := &mcpv1alpha1.McpServerCertJob{
+			// Create the McpCertificationJob with a non-existent catalog label
+			job := &mcpv1alpha1.McpCertificationJob{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      resourceName,
 					Namespace: "default",
@@ -158,13 +158,13 @@ var _ = Describe("McpServerCertJob Controller", func() {
 			})
 
 			// Reconcile
-			reconciler := &McpServerCertJobReconciler{Client: k8sClient, Scheme: k8sClient.Scheme()}
+			reconciler := &McpCertificationJobReconciler{Client: k8sClient, Scheme: k8sClient.Scheme()}
 			_, err := reconciler.Reconcile(ctx, reconcile.Request{NamespacedName: namespacedName})
 			Expect(err).NotTo(HaveOccurred())
 
 			// Check Ready condition and owner reference
 			Eventually(func(g Gomega) {
-				updated := &mcpv1alpha1.McpServerCertJob{}
+				updated := &mcpv1alpha1.McpCertificationJob{}
 				err := k8sClient.Get(ctx, namespacedName, updated)
 				g.Expect(err).NotTo(HaveOccurred())
 				cond := meta.FindStatusCondition(updated.Status.Conditions, "Ready")

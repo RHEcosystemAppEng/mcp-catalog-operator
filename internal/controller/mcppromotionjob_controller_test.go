@@ -30,7 +30,7 @@ import (
 	mcpv1alpha1 "github.com/RHEcosystemAppEng/mcp-registry-operator/api/v1alpha1"
 )
 
-var _ = Describe("McpServerPromotionJob Controller", func() {
+var _ = Describe("McpPromotionJob Controller", func() {
 	Context("When reconciling a resource", func() {
 		const resourceName = "test-resource"
 		const stagingAreaName = "test-stagingarea"
@@ -43,13 +43,13 @@ var _ = Describe("McpServerPromotionJob Controller", func() {
 
 		BeforeEach(func() {
 			By("cleaning up any existing resources")
-			_ = k8sClient.Delete(ctx, &mcpv1alpha1.McpServerPromotionJob{ObjectMeta: metav1.ObjectMeta{Name: resourceName, Namespace: "default"}})
+			_ = k8sClient.Delete(ctx, &mcpv1alpha1.McpPromotionJob{ObjectMeta: metav1.ObjectMeta{Name: resourceName, Namespace: "default"}})
 			_ = k8sClient.Delete(ctx, &mcpv1alpha1.McpStagingArea{ObjectMeta: metav1.ObjectMeta{Name: stagingAreaName, Namespace: "default"}})
 		})
 
 		AfterEach(func() {
-			By("Cleanup the specific resource instance McpServerPromotionJob")
-			_ = k8sClient.Delete(ctx, &mcpv1alpha1.McpServerPromotionJob{ObjectMeta: metav1.ObjectMeta{Name: resourceName, Namespace: "default"}})
+			By("Cleanup the specific resource instance McpPromotionJob")
+			_ = k8sClient.Delete(ctx, &mcpv1alpha1.McpPromotionJob{ObjectMeta: metav1.ObjectMeta{Name: resourceName, Namespace: "default"}})
 			_ = k8sClient.Delete(ctx, &mcpv1alpha1.McpStagingArea{ObjectMeta: metav1.ObjectMeta{Name: stagingAreaName, Namespace: "default"}})
 		})
 
@@ -63,8 +63,8 @@ var _ = Describe("McpServerPromotionJob Controller", func() {
 			}
 			Expect(k8sClient.Create(ctx, stagingArea)).To(Succeed())
 
-			By("creating the McpServerPromotionJob with the correct label and servers")
-			promotionJob := &mcpv1alpha1.McpServerPromotionJob{
+			By("creating the McpPromotionJob with the correct label and servers")
+			promotionJob := &mcpv1alpha1.McpPromotionJob{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      resourceName,
 					Namespace: "default",
@@ -72,13 +72,13 @@ var _ = Describe("McpServerPromotionJob Controller", func() {
 						McpStagingAreaLabel: stagingAreaName,
 					},
 				},
-				Spec: mcpv1alpha1.McpServerPromotionJobSpec{
+				Spec: mcpv1alpha1.McpPromotionJobSpec{
 					Servers: []string{"server1", "server2"},
 				},
 			}
 			Expect(k8sClient.Create(ctx, promotionJob)).To(Succeed())
 
-			controllerReconciler := &McpServerPromotionJobReconciler{
+			controllerReconciler := &McpPromotionJobReconciler{
 				Client: k8sClient,
 				Scheme: k8sClient.Scheme(),
 			}
@@ -89,7 +89,7 @@ var _ = Describe("McpServerPromotionJob Controller", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			By("validating the status.ServerPromotions field")
-			updated := &mcpv1alpha1.McpServerPromotionJob{}
+			updated := &mcpv1alpha1.McpPromotionJob{}
 			Expect(k8sClient.Get(ctx, typeNamespacedName, updated)).To(Succeed())
 			Expect(updated.Status.ServerPromotions).To(HaveLen(2))
 			for i, name := range []string{"server1", "server2"} {
@@ -102,8 +102,8 @@ var _ = Describe("McpServerPromotionJob Controller", func() {
 		})
 
 		It("should fail to reconcile if the referenced McpStagingArea does not exist", func() {
-			By("creating the McpServerPromotionJob with a non-existent staging area label")
-			promotionJob := &mcpv1alpha1.McpServerPromotionJob{
+			By("creating the McpPromotionJob with a non-existent staging area label")
+			promotionJob := &mcpv1alpha1.McpPromotionJob{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      resourceName,
 					Namespace: "default",
@@ -111,13 +111,13 @@ var _ = Describe("McpServerPromotionJob Controller", func() {
 						McpStagingAreaLabel: "nonexistent-stagingarea",
 					},
 				},
-				Spec: mcpv1alpha1.McpServerPromotionJobSpec{
+				Spec: mcpv1alpha1.McpPromotionJobSpec{
 					Servers: []string{"server1"},
 				},
 			}
 			Expect(k8sClient.Create(ctx, promotionJob)).To(Succeed())
 
-			controllerReconciler := &McpServerPromotionJobReconciler{
+			controllerReconciler := &McpPromotionJobReconciler{
 				Client: k8sClient,
 				Scheme: k8sClient.Scheme(),
 			}

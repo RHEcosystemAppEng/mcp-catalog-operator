@@ -4,21 +4,20 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.17.2
-  name: mcpserverpromotionjobs.mcp.opendatahub.io
+  name: mcppromotionjobs.mcp.opendatahub.io
 spec:
   group: mcp.opendatahub.io
   names:
-    kind: McpServerPromotionJob
-    listKind: McpServerPromotionJobList
-    plural: mcpserverpromotionjobs
-    singular: mcpserverpromotionjob
+    kind: McpPromotionJob
+    listKind: McpPromotionJobList
+    plural: mcppromotionjobs
+    singular: mcppromotionjob
   scope: Namespaced
   versions:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: McpServerPromotionJob is the Schema for the mcpserverpromotionjob
-          API.
+        description: McpPromotionJob is the Schema for the mcppromotionjob API.
         properties:
           apiVersion:
             description: |-
@@ -38,7 +37,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: McpServerPromotionJobSpec defines the desired state of McpServerPromotionJob.
+            description: McpPromotionJobSpec defines the desired state of McpPromotionJob.
             properties:
               catalogRef:
                 properties:
@@ -58,8 +57,7 @@ spec:
             - servers
             type: object
           status:
-            description: McpServerPromotionJobStatus defines the observed state of
-              McpServerPromotionJob.
+            description: McpPromotionJobStatus defines the observed state of McpPromotionJob.
             properties:
               serverPromotions:
                 items:

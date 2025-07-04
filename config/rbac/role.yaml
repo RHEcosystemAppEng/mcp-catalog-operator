@@ -56,10 +56,10 @@ rules:
   resources:
   - mcpcatalogs
   - mcpcertifiedservers
+  - mcpimportjobs
+  - mcppromotionjob
   - mcpregistries
   - mcpservercertjobs
-  - mcpserverimportjobs
-  - mcpserverpromotionjob
   - mcpserverruns
   - mcpservers
   - mcpstagingarea
@@ -76,10 +76,10 @@ rules:
   resources:
   - mcpcatalogs/finalizers
   - mcpcertifiedservers/finalizers
+  - mcpimportjobs/finalizers
+  - mcppromotionjob/finalizers
   - mcpregistries/finalizers
   - mcpservercertjobs/finalizers
-  - mcpserverimportjobs/finalizers
-  - mcpserverpromotionjob/finalizers
   - mcpserverruns/finalizers
   - mcpservers/finalizers
   - mcpstagingarea/finalizers
@@ -90,10 +90,10 @@ rules:
   resources:
   - mcpcatalogs/status
   - mcpcertifiedservers/status
+  - mcpimportjobs/status
+  - mcppromotionjob/status
   - mcpregistries/status
   - mcpservercertjobs/status
-  - mcpserverimportjobs/status
-  - mcpserverpromotionjob/status
   - mcpserverruns/status
   - mcpservers/status
   - mcpstagingarea/status

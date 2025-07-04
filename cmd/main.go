@@ -237,25 +237,25 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "McpServer")
 		os.Exit(1)
 	}
-	if err = (&controller.McpServerCertJobReconciler{
+	if err = (&controller.McpCertificationJobReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "McpServerCertJob")
+		setupLog.Error(err, "unable to create controller", "controller", "McpCertificationJob")
 		os.Exit(1)
 	}
-	if err = (&controller.McpServerImportJobReconciler{
+	if err = (&controller.McpImportJobReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "McpServerImportJob")
+		setupLog.Error(err, "unable to create controller", "controller", "McpImportJob")
 		os.Exit(1)
 	}
-	if err = (&controller.McpServerPromotionJobReconciler{
+	if err = (&controller.McpPromotionJobReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "McpServerPromotionJob")
+		setupLog.Error(err, "unable to create controller", "controller", "McpPromotionJob")
 		os.Exit(1)
 	}
 	if err = (&controller.McpServerRunReconciler{

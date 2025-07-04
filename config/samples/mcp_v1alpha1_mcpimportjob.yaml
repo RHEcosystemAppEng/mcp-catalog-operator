@@ -1,11 +1,11 @@
-# yaml-language-server: $schema=../crd/bases/mcp.opendatahub.io_mcpserverimportjobs.yaml
+# yaml-language-server: $schema=../crd/bases/mcp.opendatahub.io_mcpimportjobs.yaml
 apiVersion: mcp.opendatahub.io/v1alpha1
-kind: McpServerImportJob
+kind: McpImportJob
 metadata:
   labels:
     app.kubernetes.io/name: mcp-registry-operator
     app.kubernetes.io/managed-by: kustomize
     mcp.opendatahub.io/mcpcatalog: red-hat-ecosystem-mcp-catalog
-  name: mcpserverimportjob-sample
+  name: mcpimportjob-sample
 spec:
   registryUri: 'http://mcp-registry.mcp-registry-ref.svc.cluster.local:8080/v0'
