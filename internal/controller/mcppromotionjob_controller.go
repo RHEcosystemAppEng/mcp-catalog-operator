@@ -29,30 +29,30 @@ import (
 	mcpv1alpha1 "github.com/RHEcosystemAppEng/mcp-registry-operator/api/v1alpha1"
 )
 
-// McpServerPromotionJobReconciler reconciles a McpServerPromotionJob object
-type McpServerPromotionJobReconciler struct {
+// McpPromotionJobReconciler reconciles a McpPromotionJob object
+type McpPromotionJobReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
 }
 
-// +kubebuilder:rbac:groups=mcp.opendatahub.io,resources=mcpserverpromotionjob,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=mcp.opendatahub.io,resources=mcpserverpromotionjob/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=mcp.opendatahub.io,resources=mcpserverpromotionjob/finalizers,verbs=update
+// +kubebuilder:rbac:groups=mcp.opendatahub.io,resources=mcppromotionjob,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=mcp.opendatahub.io,resources=mcppromotionjob/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=mcp.opendatahub.io,resources=mcppromotionjob/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
 // TODO(user): Modify the Reconcile function to compare the state specified by
-// the McpServerPromotionJob object against the actual cluster state, and then
+// the McpPromotionJob object against the actual cluster state, and then
 // perform operations to make the cluster state reflect the state specified by
 // the user.
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.20.4/pkg/reconcile
-func (r *McpServerPromotionJobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *McpPromotionJobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := logf.FromContext(ctx)
 
-	// Fetch the McpServerPromotionJob instance
-	promotionJob := &mcpv1alpha1.McpServerPromotionJob{}
+	// Fetch the McpPromotionJob instance
+	promotionJob := &mcpv1alpha1.McpPromotionJob{}
 	if err := r.Get(ctx, req.NamespacedName, promotionJob); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
@@ -70,7 +70,7 @@ func (r *McpServerPromotionJobReconciler) Reconcile(ctx context.Context, req ctr
 		return ctrl.Result{}, err
 	}
 	if err := r.Update(ctx, promotionJob); err != nil {
-		return ctrl.Result{}, fmt.Errorf("failed to update McpServerPromotionJob with owner ref: %w", err)
+		return ctrl.Result{}, fmt.Errorf("failed to update McpPromotionJob with owner ref: %w", err)
 	}
 
 	// Initialize ServerPromotions if not already set or if the list is empty
@@ -86,7 +86,7 @@ func (r *McpServerPromotionJobReconciler) Reconcile(ctx context.Context, req ctr
 		}
 		promotionJob.Status.ServerPromotions = serverPromotions
 		if err := r.Status().Update(ctx, promotionJob); err != nil {
-			log.Error(err, "Failed to update McpServerPromotionJob status with initial server promotions")
+			log.Error(err, "Failed to update McpPromotionJob status with initial server promotions")
 			return ctrl.Result{}, err
 		}
 	}
@@ -95,9 +95,9 @@ func (r *McpServerPromotionJobReconciler) Reconcile(ctx context.Context, req ctr
 }
 
 // SetupWithManager sets up the controller with the Manager.
-func (r *McpServerPromotionJobReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *McpPromotionJobReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&mcpv1alpha1.McpServerPromotionJob{}).
-		Named("mcpserverpromotionjob").
+		For(&mcpv1alpha1.McpPromotionJob{}).
+		Named("mcppromotionjob").
 		Complete(r)
 }

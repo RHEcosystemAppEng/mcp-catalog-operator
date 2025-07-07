@@ -4,21 +4,20 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.17.2
-  name: mcpserverimportjobs.mcp.opendatahub.io
+  name: mcpimportjobs.mcp.opendatahub.io
 spec:
   group: mcp.opendatahub.io
   names:
-    kind: McpServerImportJob
-    listKind: McpServerImportJobList
-    plural: mcpserverimportjobs
-    singular: mcpserverimportjob
+    kind: McpImportJob
+    listKind: McpImportJobList
+    plural: mcpimportjobs
+    singular: mcpimportjob
   scope: Namespaced
   versions:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: McpServerImportJob is the Schema for the mcpserverimportjobs
-          API.
+        description: McpImportJob is the Schema for the mcpimportjobs API.
         properties:
           apiVersion:
             description: |-
@@ -38,7 +37,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: McpServerImportJobSpec defines the desired state of McpServerImportJob.
+            description: McpImportJobSpec defines the desired state of McpImportJob.
             properties:
               maxServers:
                 description: Maximum number of servers to import (optional, defaults
@@ -55,7 +54,7 @@ spec:
             - registryUri
             type: object
           status:
-            description: McpServerImportJobStatus defines the observed state of McpServerImportJob.
+            description: McpImportJobStatus defines the observed state of McpImportJob.
             properties:
               configMapName:
                 description: Name of the ConfigMap that contains the import details
