@@ -28,18 +28,19 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
+	k8stypes "k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	mcpv1alpha1 "github.com/RHEcosystemAppEng/mcp-registry-operator/api/v1alpha1"
+	"github.com/RHEcosystemAppEng/mcp-registry-operator/internal/types"
 )
 
 // Helper function to create McpImportJob instances
 var createMcpImportJob = func(name, namespace, registryURI, catalogName string, nameFilter *string, maxServers *int) *mcpv1alpha1.McpImportJob {
 	labels := make(map[string]string)
 	if catalogName != "" {
-		labels[McpCatalogLabel] = catalogName
+		labels[types.McpCatalogLabel] = catalogName
 	}
 
 	return &mcpv1alpha1.McpImportJob{
@@ -64,11 +65,11 @@ var _ = Describe("McpImportJob Controller", func() {
 
 		ctx := context.Background()
 
-		catalogNamespacedName := types.NamespacedName{
+		catalogNamespacedName := k8stypes.NamespacedName{
 			Name:      catalogName,
 			Namespace: catalogNamespace,
 		}
-		typeNamespacedName := types.NamespacedName{
+		typeNamespacedName := k8stypes.NamespacedName{
 			Name:      resourceName,
 			Namespace: "default", // TODO(user):Modify as needed
 		}
@@ -113,7 +114,7 @@ var _ = Describe("McpImportJob Controller", func() {
 			Eventually(func(g Gomega) {
 				jobList := &batchv1.JobList{}
 				err := k8sClient.List(ctx, jobList, client.InNamespace("default"), client.MatchingLabels(map[string]string{
-					McpImportJobLabel: resourceName,
+					types.McpImportJobLabel: resourceName,
 				}))
 				By(fmt.Sprintf("Debug: Found %d jobs, error: %v", len(jobList.Items), err))
 
@@ -136,24 +137,24 @@ var _ = Describe("McpImportJob Controller", func() {
 			Eventually(func(g Gomega) {
 				// Check ServiceAccount still exists
 				sa := &corev1.ServiceAccount{}
-				err := k8sClient.Get(ctx, types.NamespacedName{
-					Name:      McpServerImporterServiceAccountName,
+				err := k8sClient.Get(ctx, k8stypes.NamespacedName{
+					Name:      types.McpServerImporterServiceAccountName,
 					Namespace: "default",
 				}, sa)
 				g.Expect(err).NotTo(HaveOccurred())
 
 				// Check Role still exists
 				role := &rbacv1.Role{}
-				err = k8sClient.Get(ctx, types.NamespacedName{
-					Name:      McpServerImporterRoleName,
+				err = k8sClient.Get(ctx, k8stypes.NamespacedName{
+					Name:      types.McpServerImporterRoleName,
 					Namespace: "default",
 				}, role)
 				g.Expect(err).NotTo(HaveOccurred())
 
 				// Check RoleBinding still exists
 				roleBinding := &rbacv1.RoleBinding{}
-				err = k8sClient.Get(ctx, types.NamespacedName{
-					Name:      McpServerImporterRoleBindingName,
+				err = k8sClient.Get(ctx, k8stypes.NamespacedName{
+					Name:      types.McpServerImporterRoleBindingName,
 					Namespace: "default",
 				}, roleBinding)
 				g.Expect(err).NotTo(HaveOccurred())
@@ -176,7 +177,7 @@ var _ = Describe("McpImportJob Controller", func() {
 			Eventually(func(g Gomega) {
 				jobList := &batchv1.JobList{}
 				err := k8sClient.List(ctx, jobList, client.InNamespace("default"), client.MatchingLabels(map[string]string{
-					McpImportJobLabel: resourceName,
+					types.McpImportJobLabel: resourceName,
 				}))
 				g.Expect(err).NotTo(HaveOccurred())
 				g.Expect(jobList.Items).To(HaveLen(1))
@@ -185,14 +186,14 @@ var _ = Describe("McpImportJob Controller", func() {
 				By(fmt.Sprintf("Debug: Job created with owner references: %v", job.OwnerReferences))
 				By(fmt.Sprintf("Debug: Job name: %s", job.Name))
 				// Verify Job has expected labels
-				g.Expect(job.Labels).To(HaveKeyWithValue(McpImportJobLabel, resourceName))
-				g.Expect(job.Labels).To(HaveKeyWithValue(McpCatalogLabel, "test-catalog"))
+				g.Expect(job.Labels).To(HaveKeyWithValue(types.McpImportJobLabel, resourceName))
+				g.Expect(job.Labels).To(HaveKeyWithValue(types.McpCatalogLabel, "test-catalog"))
 
 				// Verify Job spec
-				g.Expect(job.Spec.Template.Spec.ServiceAccountName).To(Equal(McpServerImporterServiceAccountName))
+				g.Expect(job.Spec.Template.Spec.ServiceAccountName).To(Equal(types.McpServerImporterServiceAccountName))
 				g.Expect(job.Spec.Template.Spec.Containers).To(HaveLen(1))
-				g.Expect(job.Spec.Template.Spec.Containers[0].Name).To(Equal(McpServerImporterContainerName))
-				g.Expect(job.Spec.Template.Spec.Containers[0].Image).To(Equal(McpServerImporterImage))
+				g.Expect(job.Spec.Template.Spec.Containers[0].Name).To(Equal(types.McpServerImporterContainerName))
+				g.Expect(job.Spec.Template.Spec.Containers[0].Image).To(Equal(types.McpServerImporterImage))
 
 				// Verify environment variables
 				envVars := job.Spec.Template.Spec.Containers[0].Env
@@ -205,23 +206,23 @@ var _ = Describe("McpImportJob Controller", func() {
 			// Verify ServiceAccount was created
 			Eventually(func(g Gomega) {
 				sa := &corev1.ServiceAccount{}
-				err := k8sClient.Get(ctx, types.NamespacedName{
-					Name:      McpServerImporterServiceAccountName,
+				err := k8sClient.Get(ctx, k8stypes.NamespacedName{
+					Name:      types.McpServerImporterServiceAccountName,
 					Namespace: "default",
 				}, sa)
 				g.Expect(err).NotTo(HaveOccurred())
-				g.Expect(sa.Name).To(Equal(McpServerImporterServiceAccountName))
+				g.Expect(sa.Name).To(Equal(types.McpServerImporterServiceAccountName))
 			}, 5*time.Second, 100*time.Millisecond).Should(Succeed())
 
 			// Verify Role was created
 			Eventually(func(g Gomega) {
 				role := &rbacv1.Role{}
-				err := k8sClient.Get(ctx, types.NamespacedName{
-					Name:      McpServerImporterRoleName,
+				err := k8sClient.Get(ctx, k8stypes.NamespacedName{
+					Name:      types.McpServerImporterRoleName,
 					Namespace: "default",
 				}, role)
 				g.Expect(err).NotTo(HaveOccurred())
-				g.Expect(role.Name).To(Equal(McpServerImporterRoleName))
+				g.Expect(role.Name).To(Equal(types.McpServerImporterRoleName))
 				g.Expect(role.Rules).To(HaveLen(2))
 				g.Expect(role.Rules[0].APIGroups).To(ContainElement("mcp.opendatahub.io"))
 				g.Expect(role.Rules[0].Resources).To(ContainElement("mcpservers"))
@@ -232,15 +233,15 @@ var _ = Describe("McpImportJob Controller", func() {
 			// Verify RoleBinding was created
 			Eventually(func(g Gomega) {
 				roleBinding := &rbacv1.RoleBinding{}
-				err := k8sClient.Get(ctx, types.NamespacedName{
-					Name:      McpServerImporterRoleBindingName,
+				err := k8sClient.Get(ctx, k8stypes.NamespacedName{
+					Name:      types.McpServerImporterRoleBindingName,
 					Namespace: "default",
 				}, roleBinding)
 				g.Expect(err).NotTo(HaveOccurred())
-				g.Expect(roleBinding.Name).To(Equal(McpServerImporterRoleBindingName))
+				g.Expect(roleBinding.Name).To(Equal(types.McpServerImporterRoleBindingName))
 				g.Expect(roleBinding.Subjects).To(HaveLen(1))
-				g.Expect(roleBinding.Subjects[0].Name).To(Equal(McpServerImporterServiceAccountName))
-				g.Expect(roleBinding.RoleRef.Name).To(Equal(McpServerImporterRoleName))
+				g.Expect(roleBinding.Subjects[0].Name).To(Equal(types.McpServerImporterServiceAccountName))
+				g.Expect(roleBinding.RoleRef.Name).To(Equal(types.McpServerImporterRoleName))
 			}, 5*time.Second, 100*time.Millisecond).Should(Succeed())
 		})
 	})

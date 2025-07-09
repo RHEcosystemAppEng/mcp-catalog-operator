@@ -31,6 +31,8 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
 	mcpv1alpha1 "github.com/RHEcosystemAppEng/mcp-registry-operator/api/v1alpha1"
+	"github.com/RHEcosystemAppEng/mcp-registry-operator/internal/services"
+	"github.com/RHEcosystemAppEng/mcp-registry-operator/internal/types"
 )
 
 // McpCertificationJobReconciler reconciles a McpCertificationJob object
@@ -71,26 +73,27 @@ func (r *McpCertificationJobReconciler) Reconcile(ctx context.Context, req ctrl.
 
 // initializeOwnershipAndReadiness sets the owner reference to the referenced McpCatalog and sets the Ready condition accordingly.
 func (r *McpCertificationJobReconciler) initializeOwnershipAndReadiness(ctx context.Context, mcpCertificationJob *mcpv1alpha1.McpCertificationJob, log logr.Logger) error {
-	now := metav1.NewTime(time.Now())
-	mcpCatalog, err := GetMcpCatalogFromLabels(ctx, r.Client, mcpCertificationJob)
+	// Get McpCatalog using annotations
+	mcpCatalog, err := services.GetMcpCatalogFromLabels(ctx, r.Client, mcpCertificationJob)
 	catalogExists := err == nil
 
 	var readyCondition metav1.Condition
+	now := metav1.NewTime(time.Now())
 	if catalogExists {
 		if mcpCatalog.Namespace != mcpCertificationJob.Namespace {
 			readyCondition = metav1.Condition{
-				Type:               ConditionTypeReady,
+				Type:               types.ConditionTypeReady,
 				Status:             metav1.ConditionFalse,
-				Reason:             ConditionReasonCrossNamespaces,
-				Message:            ValidationMessageCrossNamespaces,
+				Reason:             types.ConditionReasonCrossNamespaces,
+				Message:            types.ValidationMessageCrossNamespaces,
 				LastTransitionTime: now,
 				ObservedGeneration: mcpCertificationJob.Generation,
 			}
 		} else {
 			readyCondition = metav1.Condition{
-				Type:               ConditionTypeReady,
+				Type:               types.ConditionTypeReady,
 				Status:             metav1.ConditionTrue,
-				Reason:             ConditionReasonValidationSucceeded,
+				Reason:             types.ConditionReasonValidationSucceeded,
 				Message:            "McpCertificationJob spec is valid",
 				LastTransitionTime: now,
 				ObservedGeneration: mcpCertificationJob.Generation,
@@ -104,10 +107,10 @@ func (r *McpCertificationJobReconciler) initializeOwnershipAndReadiness(ctx cont
 		}
 	} else {
 		readyCondition = metav1.Condition{
-			Type:               ConditionTypeReady,
+			Type:               types.ConditionTypeReady,
 			Status:             metav1.ConditionFalse,
-			Reason:             ConditionReasonValidationFailed,
-			Message:            ValidationMessageCatalogNotFound,
+			Reason:             types.ConditionReasonValidationFailed,
+			Message:            types.ValidationMessageCatalogNotFound,
 			LastTransitionTime: now,
 			ObservedGeneration: mcpCertificationJob.Generation,
 		}

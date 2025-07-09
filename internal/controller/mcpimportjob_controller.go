@@ -22,13 +22,14 @@ import (
 	"strconv"
 
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
+	k8stypes "k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
 	mcpv1alpha1 "github.com/RHEcosystemAppEng/mcp-registry-operator/api/v1alpha1"
+	"github.com/RHEcosystemAppEng/mcp-registry-operator/internal/types"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -52,7 +53,7 @@ func (r *McpImportJobReconciler) initializeJob(ctx context.Context, mcpImportJob
 	needsStatusUpdate := false
 	needsStart := false
 	defaultNameFilter := ""
-	defaultMaxServers := DefaultMaxServers
+	defaultMaxServers := types.DefaultMaxServers
 	defaultConfigMapName := ""
 
 	// Initialize NameFilter to empty string if not set
@@ -88,13 +89,13 @@ func (r *McpImportJobReconciler) initializeJob(ctx context.Context, mcpImportJob
 		}
 	}
 
-	catalogName := mcpImportJob.Labels[McpCatalogLabel]
+	catalogName := mcpImportJob.Labels[types.McpCatalogLabel]
 	if catalogName == "" {
 		return false, fmt.Errorf("McpCatalogLabel not found on McpImportJob")
 	}
 
 	mcpCatalog := &mcpv1alpha1.McpCatalog{}
-	err := r.Get(ctx, types.NamespacedName{Name: catalogName, Namespace: mcpImportJob.Namespace}, mcpCatalog)
+	err := r.Get(ctx, k8stypes.NamespacedName{Name: catalogName, Namespace: mcpImportJob.Namespace}, mcpCatalog)
 	if err != nil {
 		return false, fmt.Errorf("failed to get McpCatalog: %w", err)
 	}
@@ -123,7 +124,7 @@ func (r *McpImportJobReconciler) initializeJob(ctx context.Context, mcpImportJob
 func (r *McpImportJobReconciler) createServiceAccount(ctx context.Context, namespace string) error {
 	serviceAccount := &corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      McpServerImporterServiceAccountName,
+			Name:      types.McpServerImporterServiceAccountName,
 			Namespace: namespace,
 		},
 	}
@@ -140,7 +141,7 @@ func (r *McpImportJobReconciler) createServiceAccount(ctx context.Context, names
 func (r *McpImportJobReconciler) createRole(ctx context.Context, namespace string) error {
 	role := &rbacv1.Role{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      McpServerImporterRoleName,
+			Name:      types.McpServerImporterRoleName,
 			Namespace: namespace,
 		},
 		Rules: []rbacv1.PolicyRule{
@@ -169,19 +170,19 @@ func (r *McpImportJobReconciler) createRole(ctx context.Context, namespace strin
 func (r *McpImportJobReconciler) createRoleBinding(ctx context.Context, namespace string) error {
 	roleBinding := &rbacv1.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      McpServerImporterRoleBindingName,
+			Name:      types.McpServerImporterRoleBindingName,
 			Namespace: namespace,
 		},
 		Subjects: []rbacv1.Subject{
 			{
 				Kind:      "ServiceAccount",
-				Name:      McpServerImporterServiceAccountName,
+				Name:      types.McpServerImporterServiceAccountName,
 				Namespace: namespace,
 			},
 		},
 		RoleRef: rbacv1.RoleRef{
 			Kind:     "Role",
-			Name:     McpServerImporterRoleName,
+			Name:     types.McpServerImporterRoleName,
 			APIGroup: "rbac.authorization.k8s.io",
 		},
 	}
@@ -199,35 +200,35 @@ func (r *McpImportJobReconciler) createImportJob(ctx context.Context, mcpImportJ
 	log := logf.FromContext(ctx)
 
 	// Get the catalog name from labels
-	catalogName := mcpImportJob.Labels[McpCatalogLabel]
+	catalogName := mcpImportJob.Labels[types.McpCatalogLabel]
 	if catalogName == "" {
 		return fmt.Errorf("McpCatalogLabel not found on McpImportJob")
 	}
 
 	// Convert MaxServers to string
-	maxServersStr := strconv.Itoa(DefaultMaxServers) // default value
+	maxServersStr := strconv.Itoa(types.DefaultMaxServers) // default value
 	if mcpImportJob.Spec.MaxServers != nil {
 		maxServersStr = strconv.Itoa(*mcpImportJob.Spec.MaxServers)
 	}
 
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
-			GenerateName: McpServerImporterJobGenerateName,
+			GenerateName: types.McpServerImporterJobGenerateName,
 			Namespace:    mcpImportJob.Namespace,
 			Labels: map[string]string{
-				McpCatalogLabel:   catalogName,
-				McpImportJobLabel: mcpImportJob.Name,
+				types.McpCatalogLabel:   catalogName,
+				types.McpImportJobLabel: mcpImportJob.Name,
 			},
 		},
 		Spec: batchv1.JobSpec{
 			Template: corev1.PodTemplateSpec{
 				Spec: corev1.PodSpec{
-					ServiceAccountName: McpServerImporterServiceAccountName,
+					ServiceAccountName: types.McpServerImporterServiceAccountName,
 					RestartPolicy:      corev1.RestartPolicyOnFailure,
 					Containers: []corev1.Container{
 						{
-							Name:  McpServerImporterContainerName,
-							Image: McpServerImporterImage,
+							Name:  types.McpServerImporterContainerName,
+							Image: types.McpServerImporterImage,
 							Env: []corev1.EnvVar{
 								{
 									Name:  "CATALOG_NAME",
@@ -313,7 +314,7 @@ func (r *McpImportJobReconciler) checkJobStatus(ctx context.Context, mcpImportJo
 	// List Jobs owned by this McpImportJob
 	jobList := &batchv1.JobList{}
 	err := r.List(ctx, jobList, client.InNamespace(mcpImportJob.Namespace), client.MatchingLabels(map[string]string{
-		McpImportJobLabel: mcpImportJob.Name,
+		types.McpImportJobLabel: mcpImportJob.Name,
 	}))
 	if err != nil {
 		return fmt.Errorf("failed to list Jobs: %w", err)
@@ -361,7 +362,7 @@ func (r *McpImportJobReconciler) checkJobStatus(ctx context.Context, mcpImportJo
 		// Look for ConfigMap with the appropriate label
 		configMapList := &corev1.ConfigMapList{}
 		err := r.List(ctx, configMapList, client.InNamespace(mcpImportJob.Namespace), client.MatchingLabels(map[string]string{
-			McpImportJobLabel: mcpImportJob.Name,
+			types.McpImportJobLabel: mcpImportJob.Name,
 		}))
 		if err != nil {
 			log.Error(err, "Failed to list ConfigMaps")

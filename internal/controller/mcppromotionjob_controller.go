@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/RHEcosystemAppEng/mcp-registry-operator/internal/services"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -57,8 +58,8 @@ func (r *McpPromotionJobReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	// Get the referenced McpStagingArea using labels
-	stagingArea, err := GetMcpStagingAreaFromLabels(ctx, r.Client, promotionJob)
+	// Get McpStagingArea using annotations
+	stagingArea, err := services.GetMcpStagingAreaFromLabels(ctx, r.Client, promotionJob)
 	if err != nil {
 		log.Error(err, "Failed to get referenced McpStagingArea")
 		return ctrl.Result{}, err

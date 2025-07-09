@@ -30,6 +30,8 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
 	mcpv1alpha1 "github.com/RHEcosystemAppEng/mcp-registry-operator/api/v1alpha1"
+	"github.com/RHEcosystemAppEng/mcp-registry-operator/internal/services"
+	"github.com/RHEcosystemAppEng/mcp-registry-operator/internal/types"
 )
 
 // McpServerReconciler reconciles a McpServer object
@@ -61,7 +63,7 @@ func (r *McpServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	}
 
 	// Get McpCatalog using annotations
-	mcpCatalog, err := GetMcpCatalogFromLabels(ctx, r.Client, mcpServer)
+	mcpCatalog, err := services.GetMcpCatalogFromLabels(ctx, r.Client, mcpServer)
 	catalogExists := err == nil
 
 	var readyCondition metav1.Condition
@@ -69,19 +71,19 @@ func (r *McpServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	if catalogExists {
 		if mcpCatalog.Namespace != mcpServer.Namespace {
 			readyCondition = metav1.Condition{
-				Type:               ConditionTypeReady,
+				Type:               types.ConditionTypeReady,
 				Status:             metav1.ConditionFalse,
-				Reason:             ConditionReasonCrossNamespaces,
-				Message:            ValidationMessageCrossNamespaces,
+				Reason:             types.ConditionReasonCrossNamespaces,
+				Message:            types.ValidationMessageCrossNamespaces,
 				LastTransitionTime: now,
 				ObservedGeneration: mcpServer.Generation,
 			}
 		} else {
 			readyCondition = metav1.Condition{
-				Type:               ConditionTypeReady,
+				Type:               types.ConditionTypeReady,
 				Status:             metav1.ConditionTrue,
-				Reason:             ConditionReasonValidationSucceeded,
-				Message:            ValidationMessageServerSuccess,
+				Reason:             types.ConditionReasonValidationSucceeded,
+				Message:            types.ValidationMessageServerSuccess,
 				LastTransitionTime: now,
 				ObservedGeneration: mcpServer.Generation,
 			}
@@ -94,10 +96,10 @@ func (r *McpServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		}
 	} else {
 		readyCondition = metav1.Condition{
-			Type:               ConditionTypeReady,
+			Type:               types.ConditionTypeReady,
 			Status:             metav1.ConditionFalse,
-			Reason:             ConditionReasonValidationFailed,
-			Message:            ValidationMessageCatalogNotFound,
+			Reason:             types.ConditionReasonValidationFailed,
+			Message:            types.ValidationMessageCatalogNotFound,
 			LastTransitionTime: now,
 			ObservedGeneration: mcpServer.Generation,
 		}

@@ -27,6 +27,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
 	mcpv1alpha1 "github.com/RHEcosystemAppEng/mcp-registry-operator/api/v1alpha1"
+	"github.com/RHEcosystemAppEng/mcp-registry-operator/internal/services"
 )
 
 // McpCertifiedServerReconciler reconciles a McpCertifiedServer object
@@ -57,8 +58,8 @@ func (r *McpCertifiedServerReconciler) Reconcile(ctx context.Context, req ctrl.R
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	// Get McpCatalog using labels
-	mcpCatalog, err := GetMcpCatalogFromLabels(ctx, r.Client, &mcpCertifiedServer)
+	// Get McpCatalog using annotations
+	mcpCatalog, err := services.GetMcpCatalogFromLabels(ctx, r.Client, &mcpCertifiedServer)
 	if err != nil {
 		return ctrl.Result{}, fmt.Errorf("failed to get McpCatalog from labels: %w", err)
 	}

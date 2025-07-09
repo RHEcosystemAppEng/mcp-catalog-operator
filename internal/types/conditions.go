@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package controller
+package types
 
 const (
 	ValidationMessageDescriptionRequired   = "description field is required and cannot be empty or null"

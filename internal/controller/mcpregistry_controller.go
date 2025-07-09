@@ -18,20 +18,14 @@ package controller
 
 import (
 	"context"
-	"fmt"
 
-	appsv1 "k8s.io/api/apps/v1"
-	corev1 "k8s.io/api/core/v1"
-	rbacv1 "k8s.io/api/rbac/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/util/intstr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
 	mcpv1alpha1 "github.com/RHEcosystemAppEng/mcp-registry-operator/api/v1alpha1"
+	"github.com/RHEcosystemAppEng/mcp-registry-operator/internal/controller/mcp_registry"
 )
 
 // McpRegistryReconciler reconciles a McpRegistry object
@@ -64,165 +58,17 @@ func (r *McpRegistryReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	registryName := mcpRegistry.Name
-	saName := mcpRegistry.Name
-
-	sa := corev1.ServiceAccount{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      saName,
-			Namespace: mcpRegistry.Namespace,
-		},
+	log := logf.FromContext(ctx)
+	// --- Create MongoDB and Registry resources for this catalog ---
+	if err := mcp_registry.CreateMongoDBResources(ctx, r.Client, r.Scheme, &mcpRegistry); err != nil {
+		log.Error(err, "Failed to create MongoDB resources for catalog", "name", mcpRegistry.Name)
+		return ctrl.Result{}, err
+	}
+	if err := mcp_registry.CreateMcpRegistryResources(ctx, r.Client, r.Scheme, &mcpRegistry); err != nil {
+		log.Error(err, "Failed to create registry resources for catalog", "name", mcpRegistry.Name)
+		return ctrl.Result{}, err
 	}
 
-	if err := r.Create(ctx, &sa); err != nil {
-		if apierrors.IsAlreadyExists(err) {
-			fmt.Printf("ServiceAccount %q already exists\n", saName)
-		} else {
-			return ctrl.Result{}, fmt.Errorf("error creating ServiceAccount: %w", err)
-		}
-	} else {
-		fmt.Printf("ServiceAccount %q created in namespace %q\n", saName, mcpRegistry.Namespace)
-	}
-	if err := controllerutil.SetControllerReference(&mcpRegistry, &sa, r.Scheme); err != nil {
-		return ctrl.Result{}, fmt.Errorf("failed to set owner reference on ServiceAccount: %w", err)
-	}
-
-	// TODO: we really need these? Use K8S API Job instead and remove this code
-	for _, role := range []string{
-		"mcpregistry-admin-role",
-		"mcpserver-admin-role",
-		"mcpcertifiedserver-admin-role",
-		"pipeline-as-code-controller-clusterrole"} {
-		crbName := fmt.Sprintf("%s-is-%s", saName, role)
-		crb := rbacv1.RoleBinding{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      crbName,
-				Namespace: mcpRegistry.Namespace,
-			},
-			Subjects: []rbacv1.Subject{
-				{
-					Kind:      rbacv1.ServiceAccountKind,
-					Name:      saName,
-					Namespace: mcpRegistry.Namespace,
-				},
-			},
-			RoleRef: rbacv1.RoleRef{
-				APIGroup: rbacv1.GroupName,
-				Kind:     "ClusterRole",
-				Name:     role,
-			},
-		}
-		if err := r.Create(ctx, &crb); err != nil {
-			if apierrors.IsAlreadyExists(err) {
-				fmt.Printf("ClusterRoleBinding %q already exists\n", crbName)
-			} else {
-				return ctrl.Result{}, fmt.Errorf("failed creating ClusterRoleBinding: %w", err)
-			}
-		} else {
-			fmt.Printf("ClusterRoleBinding %q created in namespace %q\n", crbName, mcpRegistry.Namespace)
-		}
-		if err := controllerutil.SetControllerReference(&mcpRegistry, &crb, r.Scheme); err != nil {
-			return ctrl.Result{}, fmt.Errorf("failed to set owner reference on ClusterRoleBinding: %w", err)
-		}
-	}
-
-	deployName := registryName
-	labels := map[string]string{
-		"app": registryName,
-	}
-	replicas := int32(1)
-
-	deploy := appsv1.Deployment{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      deployName,
-			Namespace: mcpRegistry.Namespace,
-			Labels:    labels,
-		},
-		Spec: appsv1.DeploymentSpec{
-			Replicas: &replicas,
-			Selector: &metav1.LabelSelector{
-				MatchLabels: labels,
-			},
-			Template: corev1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels: labels,
-				},
-				Spec: corev1.PodSpec{
-					ServiceAccountName: saName,
-					Containers: []corev1.Container{
-						{
-							Name:            "mcp-registry",
-							Image:           "quay.io/ecosystem-appeng/mcp-registry:amd64-0.1",
-							ImagePullPolicy: corev1.PullAlways,
-							Ports: []corev1.ContainerPort{
-								{
-									Name:          "http",
-									ContainerPort: 8000,
-									Protocol:      corev1.ProtocolTCP,
-								},
-							},
-							Env: []corev1.EnvVar{
-								{
-									Name:  "MCP_REGISTRY_NAME",
-									Value: registryName,
-								},
-								{
-									Name:  "MCP_SERVERPOOL_NAME",
-									Value: "foo",
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-	}
-
-	if err := controllerutil.SetControllerReference(&mcpRegistry, &deploy, r.Scheme); err != nil {
-		return ctrl.Result{}, fmt.Errorf("failed to set owner reference on deployment: %w", err)
-	}
-	if err := r.Create(ctx, &deploy); err != nil {
-		if apierrors.IsAlreadyExists(err) {
-			fmt.Printf("deployment %q already exists\n", deployName)
-		} else {
-			return ctrl.Result{}, fmt.Errorf("failed to create deployment: %w", err)
-		}
-	}
-
-	serviceName := mcpRegistry.Name + "-svc"
-	serviceNamespace := mcpRegistry.Namespace
-	service := corev1.Service{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      serviceName,
-			Namespace: serviceNamespace,
-			Labels:    labels,
-		},
-		Spec: corev1.ServiceSpec{
-			Selector: map[string]string{"app": mcpRegistry.Name},
-			Ports: []corev1.ServicePort{
-				{
-					Name:       "http",
-					Protocol:   "TCP",
-					Port:       8000,
-					TargetPort: intstr.FromInt(8000),
-				},
-			},
-			Type: corev1.ServiceTypeClusterIP,
-		},
-	}
-
-	if err := controllerutil.SetControllerReference(&mcpRegistry, &service, r.Scheme); err != nil {
-		return ctrl.Result{}, fmt.Errorf("failed to set owner reference on service: %w", err)
-	}
-	if err := r.Create(ctx, &service); err != nil {
-		if apierrors.IsAlreadyExists(err) {
-			fmt.Printf("service %q already exists\n", serviceName)
-		} else {
-			return ctrl.Result{}, fmt.Errorf("failed to create service: %w", err)
-		}
-	}
-
-	// Continue with normal reconcile logic...
 	return ctrl.Result{}, nil
 }
 

@@ -14,17 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package controller
+package types
 
 const (
 	McpServerVersionAnnotation = "mcp.opendatahub.io/mcpserver-version"
 	McpServerPackageAnnotation = "mcp.opendatahub.io/mcpserver-package"
 
-	ServerDescriptionAnnotation     = "mcp.opendatahub.io/description"
+	ServerDetailAnnotation          = "mcp.opendatahub.io/server-detail"
 	ServerLongDescriptionAnnotation = "mcp.opendatahub.io/long-description"
-	ServerProviderAnnotation        = "mcp.opendatahub.io/server-provider"
 	ServerImageProviderAnnotation   = "mcp.opendatahub.io/image-provider"
-	ServerHomePageAnnotation        = "mcp.opendatahub.io/homepage"
-	ServerLicenseAnnotation         = "mcp.opendatahub.io/license"
-	ServerCompetenciesAnnotation    = "mcp.opendatahub.io/competencies"
+	ServerLicenseAnnotation         = "mcp.opendatahub.io/server-license"
+	ServerCompetenciesAnnotation    = "mcp.opendatahub.io/server-competencies"
 )

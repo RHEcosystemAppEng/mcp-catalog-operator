@@ -82,33 +82,7 @@ spec:
                                 type: string
                               variables:
                                 additionalProperties:
-                                  description: UserInput represents a user input as
-                                    defined in the spec
-                                  properties:
-                                    choices:
-                                      items:
-                                        type: string
-                                      type: array
-                                    default:
-                                      type: string
-                                    description:
-                                      type: string
-                                    format:
-                                      description: create an enum for Format
-                                      type: string
-                                    is_required:
-                                      type: boolean
-                                    is_secret:
-                                      type: boolean
-                                    properties:
-                                      additionalProperties:
-                                        type: string
-                                      type: object
-                                    template:
-                                      type: string
-                                    value:
-                                      type: string
-                                  type: object
+                                  type: string
                                 type: object
                             required:
                             - name
@@ -154,33 +128,7 @@ spec:
                                 type: string
                               variables:
                                 additionalProperties:
-                                  description: UserInput represents a user input as
-                                    defined in the spec
-                                  properties:
-                                    choices:
-                                      items:
-                                        type: string
-                                      type: array
-                                    default:
-                                      type: string
-                                    description:
-                                      type: string
-                                    format:
-                                      description: create an enum for Format
-                                      type: string
-                                    is_required:
-                                      type: boolean
-                                    is_secret:
-                                      type: boolean
-                                    properties:
-                                      additionalProperties:
-                                        type: string
-                                      type: object
-                                    template:
-                                      type: string
-                                    value:
-                                      type: string
-                                  type: object
+                                  type: string
                                 type: object
                             required:
                             - type
@@ -226,33 +174,7 @@ spec:
                                 type: string
                               variables:
                                 additionalProperties:
-                                  description: UserInput represents a user input as
-                                    defined in the spec
-                                  properties:
-                                    choices:
-                                      items:
-                                        type: string
-                                      type: array
-                                    default:
-                                      type: string
-                                    description:
-                                      type: string
-                                    format:
-                                      description: create an enum for Format
-                                      type: string
-                                    is_required:
-                                      type: boolean
-                                    is_secret:
-                                      type: boolean
-                                    properties:
-                                      additionalProperties:
-                                        type: string
-                                      type: object
-                                    template:
-                                      type: string
-                                    value:
-                                      type: string
-                                  type: object
+                                  type: string
                                 type: object
                             required:
                             - type

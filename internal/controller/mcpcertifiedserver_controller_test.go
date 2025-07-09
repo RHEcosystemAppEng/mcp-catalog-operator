@@ -21,12 +21,12 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"k8s.io/apimachinery/pkg/types"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	k8stypes "k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	mcpv1alpha1 "github.com/RHEcosystemAppEng/mcp-registry-operator/api/v1alpha1"
+	"github.com/RHEcosystemAppEng/mcp-registry-operator/internal/types"
 )
 
 // Test helper functions
@@ -77,7 +77,7 @@ func withRemoteUri() func(*mcpv1alpha1.McpCertifiedServerSpec) {
 func createMcpCertifiedServer(name string, spec mcpv1alpha1.McpCertifiedServerSpec, catalogName string) *mcpv1alpha1.McpCertifiedServer {
 	labels := make(map[string]string)
 	if catalogName != "" {
-		labels[McpCatalogLabel] = catalogName
+		labels[types.McpCatalogLabel] = catalogName
 	}
 
 	return &mcpv1alpha1.McpCertifiedServer{
@@ -110,7 +110,7 @@ func createAndExpectResource(ctx context.Context, resource *mcpv1alpha1.McpCerti
 	}
 }
 
-func cleanupResource(ctx context.Context, namespacedName types.NamespacedName) {
+func cleanupResource(ctx context.Context, namespacedName k8stypes.NamespacedName) {
 	resource := &mcpv1alpha1.McpCertifiedServer{}
 	err := k8sClient.Get(ctx, namespacedName, resource)
 	if err == nil {
@@ -127,7 +127,7 @@ func createAndExpectMcpCatalog(ctx context.Context, catalog *mcpv1alpha1.McpCata
 	}
 }
 
-func cleanupMcpCatalog(ctx context.Context, namespacedName types.NamespacedName) {
+func cleanupMcpCatalog(ctx context.Context, namespacedName k8stypes.NamespacedName) {
 	catalog := &mcpv1alpha1.McpCatalog{}
 	err := k8sClient.Get(ctx, namespacedName, catalog)
 	if err == nil {
@@ -151,7 +151,7 @@ var _ = Describe("McpCertifiedServer Controller", func() {
 	Context("When reconciling a resource", func() {
 		DescribeTable("different McpCertifiedServer configurations",
 			func(resourceName string, specOptions []func(*mcpv1alpha1.McpCertifiedServerSpec), shouldCreateSucceed bool, shouldReconcileSucceed bool) {
-				typeNamespacedName := types.NamespacedName{
+				typeNamespacedName := k8stypes.NamespacedName{
 					Name:      resourceName,
 					Namespace: namespace,
 				}
@@ -200,7 +200,7 @@ var _ = Describe("McpCertifiedServer Controller", func() {
 	Context("When testing specific scenarios", func() {
 		It("should fail to reconcile when catalog is missing", func() {
 			resourceName := "test-no-catalog"
-			typeNamespacedName := types.NamespacedName{
+			typeNamespacedName := k8stypes.NamespacedName{
 				Name:      resourceName,
 				Namespace: namespace,
 			}
@@ -231,11 +231,11 @@ var _ = Describe("McpCertifiedServer Controller", func() {
 			catalogNamespace := namespace
 			resourceName := "test-with-catalog"
 
-			catalogNamespacedName := types.NamespacedName{
+			catalogNamespacedName := k8stypes.NamespacedName{
 				Name:      catalogName,
 				Namespace: catalogNamespace,
 			}
-			resourceNamespacedName := types.NamespacedName{
+			resourceNamespacedName := k8stypes.NamespacedName{
 				Name:      resourceName,
 				Namespace: namespace,
 			}
@@ -271,7 +271,7 @@ var _ = Describe("McpCertifiedServer Controller", func() {
 
 		It("should not set owner reference and fail reconciliation when annotated McpCatalog does not exist", func() {
 			resourceName := "test-with-missing-catalog"
-			resourceNamespacedName := types.NamespacedName{
+			resourceNamespacedName := k8stypes.NamespacedName{
 				Name:      resourceName,
 				Namespace: namespace,
 			}
@@ -303,7 +303,7 @@ var _ = Describe("McpCertifiedServer Controller", func() {
 
 		It("should not set owner reference and fail reconciliation when catalog label is missing", func() {
 			resourceName := "test-no-catalog-label"
-			resourceNamespacedName := types.NamespacedName{
+			resourceNamespacedName := k8stypes.NamespacedName{
 				Name:      resourceName,
 				Namespace: namespace,
 			}
