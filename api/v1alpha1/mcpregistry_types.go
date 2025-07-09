@@ -20,8 +20,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 type RegistryRef struct {
 	Name      string  `json:"name"`
 	Namespace *string `json:"namespace,omitempty"`
@@ -35,8 +33,7 @@ type McpRegistrySpec struct {
 
 // McpRegistryStatus defines the observed state of McpRegistry.
 type McpRegistryStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	Conditions []metav1.Condition `json:"conditions,omitempty"`
 }
 
 // +kubebuilder:object:root=true

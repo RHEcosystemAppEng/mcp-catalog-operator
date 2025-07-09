@@ -30,6 +30,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
 	mcpv1alpha1 "github.com/RHEcosystemAppEng/mcp-registry-operator/api/v1alpha1"
+	"github.com/RHEcosystemAppEng/mcp-registry-operator/internal/types"
 )
 
 // McpCatalogReconciler reconciles a McpCatalog object
@@ -67,10 +68,10 @@ func (r *McpCatalogReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	// Update status based on validation result
 	if validationErr != nil {
 		log.Error(validationErr, "Validation failed for McpCatalog", "name", mcpCatalog.Name, "namespace", mcpCatalog.Namespace)
-		r.setReadyCondition(mcpCatalog, metav1.ConditionFalse, ConditionReasonValidationFailed, validationErr.Error())
+		r.setReadyCondition(mcpCatalog, metav1.ConditionFalse, types.ConditionReasonValidationFailed, validationErr.Error())
 	} else {
 		log.Info("Successfully validated McpCatalog", "name", mcpCatalog.Name, "namespace", mcpCatalog.Namespace)
-		r.setReadyCondition(mcpCatalog, metav1.ConditionTrue, ConditionReasonValidationSucceeded, ValidationMessageCatalogSuccess)
+		r.setReadyCondition(mcpCatalog, metav1.ConditionTrue, types.ConditionReasonValidationSucceeded, types.ValidationMessageCatalogSuccess)
 	}
 
 	// Update the status
@@ -78,11 +79,6 @@ func (r *McpCatalogReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		log.Error(err, "Failed to update McpCatalog status")
 		return ctrl.Result{}, err
 	}
-
-	// TODO(user): Add your reconciliation logic here
-	// For example, you might want to:
-	// - Create or update related resources
-	// - Handle finalizers
 
 	return ctrl.Result{}, nil
 }
@@ -93,12 +89,12 @@ func (r *McpCatalogReconciler) validateMcpCatalog(mcpCatalog *mcpv1alpha1.McpCat
 
 	// Check if description is empty or null
 	if strings.TrimSpace(mcpCatalog.Spec.Description) == "" {
-		validationErrors = append(validationErrors, ValidationMessageDescriptionRequired)
+		validationErrors = append(validationErrors, types.ValidationMessageDescriptionRequired)
 	}
 
 	// Check if imageRegistry is empty or null
 	if strings.TrimSpace(mcpCatalog.Spec.ImageRegistry) == "" {
-		validationErrors = append(validationErrors, ValidationMessageImageRegistryRequired)
+		validationErrors = append(validationErrors, types.ValidationMessageImageRegistryRequired)
 	}
 
 	// If there are validation errors, return a descriptive error
@@ -115,7 +111,7 @@ func (r *McpCatalogReconciler) setReadyCondition(mcpCatalog *mcpv1alpha1.McpCata
 	now := metav1.NewTime(time.Now())
 
 	readyCondition := metav1.Condition{
-		Type:               ConditionTypeReady,
+		Type:               types.ConditionTypeReady,
 		Status:             status,
 		Reason:             reason,
 		Message:            message,

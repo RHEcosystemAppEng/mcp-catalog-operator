@@ -31,8 +31,11 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	mcpv1alpha1 "github.com/RHEcosystemAppEng/mcp-registry-operator/api/v1alpha1"
+	"github.com/RHEcosystemAppEng/mcp-registry-operator/internal/controller/mcp_registry"
+	"github.com/RHEcosystemAppEng/mcp-registry-operator/internal/services"
 )
 
 // McpServerRunReconciler reconciles a McpServerRun object
@@ -55,6 +58,7 @@ type McpServerRunReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.20.4/pkg/reconcile
 func (r *McpServerRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	log := log.FromContext(ctx)
 	var mcpServerRun mcpv1alpha1.McpServerRun
 	if err := r.Get(ctx, req.NamespacedName, &mcpServerRun); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
@@ -99,19 +103,9 @@ func (r *McpServerRunReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	// Get mcpServerRef from spec
 	if mcpServerRun.Spec.ServerMode == "blueprint" {
 		fmt.Printf("mcpServer.Spec is %+v\n", mcpServerRun.Spec)
-		ref := mcpServerRun.Spec.McpServer.McpServerRef
-		if ref.Name == "" {
-			return ctrl.Result{}, fmt.Errorf("invalid mcpServerRef: name missing")
-		}
-
-		var mcpCertServer mcpv1alpha1.McpCertifiedServer
-		ns := mcpServerRun.Namespace
-		if ref.Namespace != nil {
-			ns = *ref.Namespace
-		}
-		fmt.Printf("Looking for McpCertifiedServer %s in %s", ref.Name, ns)
-		if err := r.Get(ctx, types.NamespacedName{Name: ref.Name, Namespace: ns}, &mcpCertServer); err != nil {
-			return ctrl.Result{}, fmt.Errorf("failed to get referenced McpCertifiedServer: %w", err)
+		mcpCertServer, err := services.GetMcpCertifiedServerFromRef(ctx, r.Client, &mcpServerRun, *mcpServerRun.Spec.McpServer.McpServerRef)
+		if err != nil {
+			return ctrl.Result{}, err
 		}
 
 		serverImage = &mcpCertServer.Spec.McpServer.Container.Image
@@ -242,6 +236,22 @@ func (r *McpServerRunReconciler) Reconcile(ctx context.Context, req ctrl.Request
 			return ctrl.Result{}, fmt.Errorf("failed to create service: %w", err)
 		}
 	}
+
+	log.Info("Storing server detail in MongoDB")
+	serverDetail, err := mcp_registry.ExtractServerDetail(ctx, r.Client, &mcpServerRun)
+	if err != nil {
+		return ctrl.Result{}, fmt.Errorf("failed to extract server detail: %w", err)
+	}
+	mongodb, err := mcp_registry.NewMongoDB(ctx, &mcpServerRun)
+	if err != nil {
+		return ctrl.Result{}, fmt.Errorf("failed to create MongoDB client: %w", err)
+	}
+	log.Info("Connected to MongoDB", "mongodb", mongodb)
+	err = mcp_registry.InsertServerDetail(ctx, mongodb, serverDetail)
+	if err != nil {
+		return ctrl.Result{}, fmt.Errorf("failed to insert server detail: %w", err)
+	}
+	log.Info("Inserted server detail to MongoDB")
 
 	// Continue with normal reconcile logic...
 	return ctrl.Result{}, nil

@@ -22,12 +22,12 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"k8s.io/apimachinery/pkg/api/meta"
-	"k8s.io/apimachinery/pkg/types"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	k8stypes "k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	mcpv1alpha1 "github.com/RHEcosystemAppEng/mcp-registry-operator/api/v1alpha1"
+	"github.com/RHEcosystemAppEng/mcp-registry-operator/internal/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -36,7 +36,7 @@ var _ = Describe("McpServer Controller", func() {
 	createMcpServer := func(name, namespace, catalogName string) *mcpv1alpha1.McpServer {
 		labels := make(map[string]string)
 		if catalogName != "" {
-			labels[McpCatalogLabel] = catalogName
+			labels[types.McpCatalogLabel] = catalogName
 		}
 
 		server := &mcpv1alpha1.McpServer{
@@ -78,7 +78,7 @@ var _ = Describe("McpServer Controller", func() {
 	}
 
 	// Helper function to reconcile and validate status
-	reconcileAndValidateStatus := func(namespacedName types.NamespacedName, expectedStatus metav1.ConditionStatus, expectedReason, expectedMessage string) {
+	reconcileAndValidateStatus := func(namespacedName k8stypes.NamespacedName, expectedStatus metav1.ConditionStatus, expectedReason, expectedMessage string) {
 		By("Reconciling the created resource")
 		controllerReconciler := createControllerReconciler()
 
@@ -92,14 +92,14 @@ var _ = Describe("McpServer Controller", func() {
 			updatedServer := &mcpv1alpha1.McpServer{}
 			err := k8sClient.Get(ctx, namespacedName, updatedServer)
 			g.Expect(err).NotTo(HaveOccurred())
-			readyCondition := meta.FindStatusCondition(updatedServer.Status.Conditions, ConditionTypeReady)
+			readyCondition := meta.FindStatusCondition(updatedServer.Status.Conditions, types.ConditionTypeReady)
 			g.Expect(readyCondition).NotTo(BeNil())
 			g.Expect(readyCondition.Status).To(Equal(expectedStatus))
 			g.Expect(readyCondition.Reason).To(Equal(expectedReason))
 			g.Expect(readyCondition.Message).To(Equal(expectedMessage))
 
 			if expectedStatus == metav1.ConditionTrue {
-				catalogName := updatedServer.GetLabels()[McpCatalogLabel]
+				catalogName := updatedServer.GetLabels()[types.McpCatalogLabel]
 				g.Expect(updatedServer.OwnerReferences).To(HaveLen(1))
 				g.Expect(updatedServer.OwnerReferences[0].Kind).To(Equal("McpCatalog"))
 				g.Expect(updatedServer.OwnerReferences[0].Name).To(Equal(catalogName))
@@ -110,7 +110,7 @@ var _ = Describe("McpServer Controller", func() {
 	}
 
 	// Helper function to cleanup resources
-	cleanupResource := func(resourceType string, namespacedName types.NamespacedName, resource client.Object) {
+	cleanupResource := func(resourceType string, namespacedName k8stypes.NamespacedName, resource client.Object) {
 		By("Cleanup the " + resourceType + " resource")
 		err := k8sClient.Get(ctx, namespacedName, resource)
 		if err == nil {
@@ -124,11 +124,11 @@ var _ = Describe("McpServer Controller", func() {
 
 		ctx := context.Background()
 
-		typeNamespacedName := types.NamespacedName{
+		typeNamespacedName := k8stypes.NamespacedName{
 			Name:      resourceName,
 			Namespace: "default",
 		}
-		catalogNamespacedName := types.NamespacedName{
+		catalogNamespacedName := k8stypes.NamespacedName{
 			Name:      catalogName,
 			Namespace: "default",
 		}
@@ -149,7 +149,7 @@ var _ = Describe("McpServer Controller", func() {
 		})
 
 		It("should successfully reconcile and set Ready condition to True", func() {
-			reconcileAndValidateStatus(typeNamespacedName, metav1.ConditionTrue, ConditionReasonValidationSucceeded, ValidationMessageServerSuccess)
+			reconcileAndValidateStatus(typeNamespacedName, metav1.ConditionTrue, types.ConditionReasonValidationSucceeded, types.ValidationMessageServerSuccess)
 		})
 	})
 
@@ -159,7 +159,7 @@ var _ = Describe("McpServer Controller", func() {
 
 		ctx := context.Background()
 
-		typeNamespacedName := types.NamespacedName{
+		typeNamespacedName := k8stypes.NamespacedName{
 			Name:      resourceName,
 			Namespace: "default",
 		}
@@ -175,7 +175,7 @@ var _ = Describe("McpServer Controller", func() {
 		})
 
 		It("should set Ready condition to False when catalog does not exist", func() {
-			reconcileAndValidateStatus(typeNamespacedName, metav1.ConditionFalse, ConditionReasonValidationFailed, ValidationMessageCatalogNotFound)
+			reconcileAndValidateStatus(typeNamespacedName, metav1.ConditionFalse, types.ConditionReasonValidationFailed, types.ValidationMessageCatalogNotFound)
 		})
 	})
 })

@@ -1,21 +1,16 @@
-package controller
+package services
 
 import (
 	"context"
 	"fmt"
 
-	mcpv1alpha1 "github.com/RHEcosystemAppEng/mcp-registry-operator/api/v1alpha1"
-	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
-)
 
-const (
-	McpStagingAreaLabel = "mcp.opendatahub.io/mcpstagingarea"
-	McpCatalogLabel     = "mcp.opendatahub.io/mcpcatalog"
-	McpRegistryLabel    = "mcp.opendatahub.io/mcpregistry"
-	McpServerNameLabel  = "mcp.opendatahub.io/mcpserver"
-	McpImportJobLabel   = "mcp.opendatahub.io/mcpimportjob"
+	k8stypes "k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	mcpv1alpha1 "github.com/RHEcosystemAppEng/mcp-registry-operator/api/v1alpha1"
+	"github.com/RHEcosystemAppEng/mcp-registry-operator/internal/types"
 )
 
 // GetMcpCatalogFromLabels retrieves an McpCatalog instance using labels
@@ -23,7 +18,7 @@ const (
 // It will look in the same namespace as the object.
 func GetMcpCatalogFromLabels(ctx context.Context, c client.Client, obj client.Object) (*mcpv1alpha1.McpCatalog, error) {
 	catalog := &mcpv1alpha1.McpCatalog{}
-	err := GetObjectFromLabels(ctx, c, obj, McpCatalogLabel, catalog)
+	err := GetObjectFromLabels(ctx, c, obj, types.McpCatalogLabel, catalog)
 	return catalog, err
 }
 
@@ -32,7 +27,7 @@ func GetMcpCatalogFromLabels(ctx context.Context, c client.Client, obj client.Ob
 // It will look in the same namespace as the object.
 func GetMcpStagingAreaFromLabels(ctx context.Context, c client.Client, obj client.Object) (*mcpv1alpha1.McpStagingArea, error) {
 	stagingArea := &mcpv1alpha1.McpStagingArea{}
-	err := GetObjectFromLabels(ctx, c, obj, McpStagingAreaLabel, stagingArea)
+	err := GetObjectFromLabels(ctx, c, obj, types.McpStagingAreaLabel, stagingArea)
 	return stagingArea, err
 }
 
@@ -49,7 +44,7 @@ func GetObjectFromLabels(ctx context.Context, c client.Client, obj client.Object
 
 	objectNamespace := obj.GetNamespace()
 
-	if err := c.Get(ctx, types.NamespacedName{
+	if err := c.Get(ctx, k8stypes.NamespacedName{
 		Name:      objectName,
 		Namespace: objectNamespace,
 	}, result); err != nil {

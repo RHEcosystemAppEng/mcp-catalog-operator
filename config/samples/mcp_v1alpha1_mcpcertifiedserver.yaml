@@ -8,10 +8,29 @@ metadata:
     mcp.opendatahub.io/mcpcatalog: red-hat-ecosystem-mcp-catalog
     mcp.opendatahub.io/mcpserver: io-github-manusa-kubernetes-mcp-server-kubernetes-mcp-server
   annotations:
-    mcp.opendatahub.io/mcpserver-version: 0.0.1-seed
-    mcp.opendatahub.io/mcpserver-package: manusa/kubernetes-mcp-server
-    mcp.opendatahub.io/description: >
-      Model Context Protocol (MCP) server for Kubernetes and OpenShift
+    mcp.opendatahub.io/server-detail: |
+      {
+        "id": "4a097d31-ea39-43aa-9af5-6f19a7676901",
+        "name": "io.github.manusa/kubernetes-mcp-server",
+        "description": "Model Context Protocol (MCP) server for Kubernetes and OpenShift",
+        "repository": {
+          "url": "https://github.com/manusa/kubernetes-mcp-server",
+          "source": "github",
+          "id": "930678258"
+        },
+        "version_detail": {
+          "version": "0.0.1-seed",
+          "release_date": "2025-05-16T19:09:03Z",
+          "is_latest": true
+        },
+        "packages": [
+          {
+            "registry_name": "unknown",
+            "name": "manusa/kubernetes-mcp-server",
+            "version": ""
+          }
+        ]
+      }
     mcp.opendatahub.io/long-description: >
       The `kubernetes-mcp-server` is a Kubernetes Model Context Protocol (MCP) server for Kubernetes and OpenShift.
 
@@ -37,9 +56,7 @@ metadata:
       ---
       ### Development
       * Instructions for compiling and running with `mcp-inspector`.
-    mcp.opendatahub.io/server-provider: https://github.com/manusa
     mcp.opendatahub.io/image-provider: Red Hat
-    mcp.opendatahub.io/homepage: https://github.com/manusa/kubernetes-mcp-server
     mcp.opendatahub.io/license: Apache-2.0
     mcp.opendatahub.io/competencies: ['kubernetes', 'openshift']
   name: kubernetes-mcp-server

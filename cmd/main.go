@@ -19,6 +19,7 @@ package main
 import (
 	"crypto/tls"
 	"flag"
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -39,6 +40,7 @@ import (
 
 	mcpv1alpha1 "github.com/RHEcosystemAppEng/mcp-registry-operator/api/v1alpha1"
 	"github.com/RHEcosystemAppEng/mcp-registry-operator/internal/controller"
+	routev1 "github.com/openshift/api/route/v1"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -51,6 +53,11 @@ func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
 	utilruntime.Must(mcpv1alpha1.AddToScheme(scheme))
+
+	// Add OpenShift route API to scheme
+	if err := routev1.AddToScheme(scheme); err != nil {
+		panic(fmt.Sprintf("Failed to add OpenShift route API to scheme: %v", err))
+	}
 	// +kubebuilder:scaffold:scheme
 }
 

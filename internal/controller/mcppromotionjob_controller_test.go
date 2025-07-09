@@ -22,12 +22,12 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"k8s.io/apimachinery/pkg/types"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	k8stypes "k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	mcpv1alpha1 "github.com/RHEcosystemAppEng/mcp-registry-operator/api/v1alpha1"
+	"github.com/RHEcosystemAppEng/mcp-registry-operator/internal/types"
 )
 
 var _ = Describe("McpPromotionJob Controller", func() {
@@ -36,7 +36,7 @@ var _ = Describe("McpPromotionJob Controller", func() {
 		const stagingAreaName = "test-stagingarea"
 		ctx := context.Background()
 
-		typeNamespacedName := types.NamespacedName{
+		typeNamespacedName := k8stypes.NamespacedName{
 			Name:      resourceName,
 			Namespace: "default",
 		}
@@ -69,7 +69,7 @@ var _ = Describe("McpPromotionJob Controller", func() {
 					Name:      resourceName,
 					Namespace: "default",
 					Labels: map[string]string{
-						McpStagingAreaLabel: stagingAreaName,
+						types.McpStagingAreaLabel: stagingAreaName,
 					},
 				},
 				Spec: mcpv1alpha1.McpPromotionJobSpec{
@@ -108,7 +108,7 @@ var _ = Describe("McpPromotionJob Controller", func() {
 					Name:      resourceName,
 					Namespace: "default",
 					Labels: map[string]string{
-						McpStagingAreaLabel: "nonexistent-stagingarea",
+						types.McpStagingAreaLabel: "nonexistent-stagingarea",
 					},
 				},
 				Spec: mcpv1alpha1.McpPromotionJobSpec{

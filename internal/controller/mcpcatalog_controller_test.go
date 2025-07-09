@@ -25,10 +25,11 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
+	k8stypes "k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	mcpv1alpha1 "github.com/RHEcosystemAppEng/mcp-registry-operator/api/v1alpha1"
+	"github.com/RHEcosystemAppEng/mcp-registry-operator/internal/types"
 )
 
 // Helper function to create McpCatalog instances
@@ -51,7 +52,7 @@ var _ = Describe("McpCatalog Controller", func() {
 
 		ctx := context.Background()
 
-		typeNamespacedName := types.NamespacedName{
+		typeNamespacedName := k8stypes.NamespacedName{
 			Name:      resourceName,
 			Namespace: "default", // TODO(user):Modify as needed
 		}
@@ -92,11 +93,11 @@ var _ = Describe("McpCatalog Controller", func() {
 				updatedCatalog := &mcpv1alpha1.McpCatalog{}
 				err := k8sClient.Get(ctx, typeNamespacedName, updatedCatalog)
 				Expect(err).NotTo(HaveOccurred())
-				readyCondition := meta.FindStatusCondition(updatedCatalog.Status.Conditions, ConditionTypeReady)
+				readyCondition := meta.FindStatusCondition(updatedCatalog.Status.Conditions, types.ConditionTypeReady)
 				// Check that the Ready condition is set to True
 				Expect(readyCondition.Status).To(Equal(metav1.ConditionTrue))
-				Expect(readyCondition.Reason).To(Equal(ConditionReasonValidationSucceeded))
-				Expect(readyCondition.Message).To(Equal(ValidationMessageCatalogSuccess))
+				Expect(readyCondition.Reason).To(Equal(types.ConditionReasonValidationSucceeded))
+				Expect(readyCondition.Message).To(Equal(types.ValidationMessageCatalogSuccess))
 			}, 5*time.Second, 100*time.Millisecond).Should(Succeed())
 
 		})
@@ -107,7 +108,7 @@ var _ = Describe("McpCatalog Controller", func() {
 
 		ctx := context.Background()
 
-		typeNamespacedName := types.NamespacedName{
+		typeNamespacedName := k8stypes.NamespacedName{
 			Name:      invalidResourceName,
 			Namespace: "default",
 		}
@@ -151,11 +152,11 @@ var _ = Describe("McpCatalog Controller", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			// Check that the Ready condition is set to False
-			readyCondition := meta.FindStatusCondition(updatedCatalog.Status.Conditions, ConditionTypeReady)
+			readyCondition := meta.FindStatusCondition(updatedCatalog.Status.Conditions, types.ConditionTypeReady)
 			Expect(readyCondition).NotTo(BeNil())
 			Expect(readyCondition.Status).To(Equal(metav1.ConditionFalse))
-			Expect(readyCondition.Reason).To(Equal(ConditionReasonValidationFailed))
-			Expect(readyCondition.Message).To(ContainSubstring(ValidationMessageDescriptionRequired))
+			Expect(readyCondition.Reason).To(Equal(types.ConditionReasonValidationFailed))
+			Expect(readyCondition.Message).To(ContainSubstring(types.ValidationMessageDescriptionRequired))
 		})
 	})
 
@@ -182,7 +183,7 @@ var _ = Describe("McpCatalog Controller", func() {
 
 			err := controllerReconciler.validateMcpCatalog(invalidCatalog)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring(ValidationMessageDescriptionRequired))
+			Expect(err.Error()).To(ContainSubstring(types.ValidationMessageDescriptionRequired))
 		})
 
 		It("should reject McpCatalog with empty imageRegistry", func() {
@@ -195,7 +196,7 @@ var _ = Describe("McpCatalog Controller", func() {
 
 			err := controllerReconciler.validateMcpCatalog(invalidCatalog)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring(ValidationMessageImageRegistryRequired))
+			Expect(err.Error()).To(ContainSubstring(types.ValidationMessageImageRegistryRequired))
 		})
 
 		It("should reject McpCatalog with whitespace-only description", func() {
@@ -217,7 +218,7 @@ var _ = Describe("McpCatalog Controller", func() {
 
 			err := controllerReconciler.validateMcpCatalog(invalidCatalog)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring(ValidationMessageDescriptionRequired))
+			Expect(err.Error()).To(ContainSubstring(types.ValidationMessageDescriptionRequired))
 		})
 
 		It("should reject McpCatalog with whitespace-only imageRegistry", func() {
@@ -230,7 +231,7 @@ var _ = Describe("McpCatalog Controller", func() {
 
 			err := controllerReconciler.validateMcpCatalog(invalidCatalog)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring(ValidationMessageImageRegistryRequired))
+			Expect(err.Error()).To(ContainSubstring(types.ValidationMessageImageRegistryRequired))
 		})
 
 		It("should reject McpCatalog with both fields empty", func() {
@@ -252,8 +253,8 @@ var _ = Describe("McpCatalog Controller", func() {
 
 			err := controllerReconciler.validateMcpCatalog(invalidCatalog)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring(ValidationMessageDescriptionRequired))
-			Expect(err.Error()).To(ContainSubstring(ValidationMessageImageRegistryRequired))
+			Expect(err.Error()).To(ContainSubstring(types.ValidationMessageDescriptionRequired))
+			Expect(err.Error()).To(ContainSubstring(types.ValidationMessageImageRegistryRequired))
 		})
 	})
 })
